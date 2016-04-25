@@ -44,6 +44,8 @@ class Auth extends Base {
             'username', 'password'
         ], [], this.postUser.bind(this));
 
+        // get current authenticated user
+        this.regRoute('get', '/users/current', [], [], this.getCurrentUser.bind(this), true);
     }
 
     /**
@@ -62,14 +64,14 @@ class Auth extends Base {
             }
 
             // create new token
-            user.generateToken();
+            var token = user.generateToken();
             user.save();
 
             // send success
             response.json({
                 success: true,
                 data: {
-                    token: user.token
+                    token: token
                 }
             });
         }).apply(this, [request, response]);
@@ -116,6 +118,17 @@ class Auth extends Base {
         });
     }
 
+    /**
+     * Get the current user
+     * @param request
+     * @param input
+     * @param response
+     */
+    getCurrentUser(request, input, response) {
+        response.json({
+            username: request.user.username
+        });
+    }
 }
 
 module.exports = Auth;

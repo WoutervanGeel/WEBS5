@@ -14,7 +14,10 @@ var userSchema = new Schema({
         maxlength: [20, 'Username too long']
     },
     password: String,
-    token: String
+    tokens: [{
+        token: String,
+        date: Date
+    }]
 });
 
 /**
@@ -82,20 +85,61 @@ userSchema.methods.validPassword = function (password, successCallback, failureC
  * @returns {boolean}
  */
 userSchema.methods.verifyToken = function (token) {
-    return token.length == tokenLength && this.token == token;
+    // invalid token?
+    if (token.length != tokenLength) {
+        return false;
+    }
+
+    // check if the token exists for this user
+    for (var index in this.tokens) {
+        if (this.tokens[index].token == token) {
+            return true;
+        }
+    }
+    return false;
 };
 
 /**
  * Generate a new access token
  */
 userSchema.methods.generateToken = function () {
-    var text = "";
+    var token = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     for (var i = 0; i < tokenLength; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+        token += possible.charAt(Math.floor(Math.random() * possible.length));
 
-    this.token = text;
+    // push token
+    this.tokens.push({
+        token: token,
+        date: new Date()
+    });
+
+    return token;
+};
+
+/**
+ *
+ * @param token
+ */
+userSchema.methods.updateTokenDate = function (token) {
+    var toRemove = [];
+    for (var index in this.tokens) {
+        // update the date for the current token
+        if (this.tokens[index].token == token) {
+            this.tokens[index].date = new Date();
+            continue;
+        }
+
+        // make sure a token will expire after thirty days of inactivity
+        if (((new Date() - this.tokens[index].date) / (1000 * 60 * 60 * 24)) > 30) {
+            this.tokens.splice(index, 1);
+            index--;
+        }
+    }
+
+    // save in background
+    this.save();
 };
 
 // apply auto-increment
