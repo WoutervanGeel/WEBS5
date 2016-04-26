@@ -13,20 +13,17 @@ class Auth extends Base {
      * Dealing with user login and logouts
      * @param router
      */
-    constructor(app) {
+    constructor() {
         super(router);
 
         // apply middleware if necessary
         router.use(function (req, res, next) {
-            // console.log('auth method called');
+            console.log('auth method called');
             next();
         });
 
         // add routes to router
         this.resolve();
-
-        // commit router to application
-        app.use('/auth', router);
     }
 
     /**
@@ -131,4 +128,4 @@ class Auth extends Base {
     }
 }
 
-module.exports = Auth;
+module.exports = new Auth();

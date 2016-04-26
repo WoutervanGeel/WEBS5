@@ -32,7 +32,7 @@ app.use(function (req, res, next) {
 
 app.use('/', routes);
 
-new (require('./routes/Auth'))(app);
+app.use('/auth', require('./routes/Auth').router);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
