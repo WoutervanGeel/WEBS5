@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    a(href='/races?format=html').
+        go to races
+    h1.
+        response.name
+    
+    h3.
+        Edit Race
+    form#formAddRace(name="editrace",method="post",action="")
+        input#inputRaceName(type="text", value=response.name, name="venuename")
+        input#inputMethod(type="hidden", value="put", name="_method")
+        button#btnSubmit(type="submit") Wijzigen
+        
+    h3.
+        Delete Venue
+    form#formDeleteVenue(name="deletevenue",method="post", action="")
+        input#inputMethod(type="hidden", value="delete", name="_method")
+        button#btnSubmit(type="submit") Verwijderen
+    
+    

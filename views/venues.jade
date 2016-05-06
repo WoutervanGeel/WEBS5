@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    h1.
+        Venue List
+    ul
+        each venue, i in results
+            li
+                a(href='/venues/'+venue.name+'?format=html')= venue.name
+    h1.
+        Add New Venue
+    form#formAddVenue(name="addvenue",method="post",action="")
+        input#inputUserName(type="text", placeholder="Name", name="venuename")
+        input#inputUserEmail(type="text", placeholder="Category", name="venuecategory")
+        button#btnSubmit(type="submit") Toevoegen
+    
+    

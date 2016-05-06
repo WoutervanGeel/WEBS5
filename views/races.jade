@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    h1.
+        Race List
+    ul
+        each race, i in results
+            li
+                a(href='/races/'+race.name+'?format=html')= race.name
+    h1.
+        Add New Race
+    form#formAddRace(name="addrace",method="post",action="")
+        input#inputRaceName(type="text", placeholder="Name", name="racename")
+        button#btnSubmit(type="submit") Toevoegen
+    
+    

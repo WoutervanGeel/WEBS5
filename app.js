@@ -12,7 +12,7 @@ mongoose.connect('mongodb://127.0.0.1/3000');
 // /Data Access Layer
 
 // Models
-require('./models/pokemon')(mongoose);
+//require('./models/pokemon')(mongoose);
 require('./models/venue')(mongoose);
 require('./models/race')(mongoose);
 // /Models

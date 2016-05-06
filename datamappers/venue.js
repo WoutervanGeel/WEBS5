@@ -18,19 +18,17 @@ var dataMapper =
                 {
                     var externalData = JSON.parse(body);
                     
-                    var index = 1;
                     _.each(externalData.results, function(result)
                     {
                         var venue = new Venue();
                         venue.name = result.name;
-                        venue.index = index;
+                        venue.index = result.id;
                         venue.category = result.category;
                         venue.isMapped = false; //Only true if fully mapped on first user access.
                         venue.save(function(error, savedVenue)
                         {
                             if(error) errorCallback(error);
                         });
-                        index++;
                     });
                     successCallback();
                 });
@@ -46,7 +44,7 @@ var dataMapper =
         ([
             function(callback)
             {
-                request(domainURL + '/venues/' + venue.name, function(error, response, body)
+                request(domainURL + '/venues/' + venue.index, function(error, response, body)
                 {
                     if(error) return callback(error);
                     

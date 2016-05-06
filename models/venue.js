@@ -6,8 +6,7 @@ function init(mongoose)
     ({
         index:
         {
-            type: Number,
-            index: { unique: true }
+            type: Number
         },
         name:
         {

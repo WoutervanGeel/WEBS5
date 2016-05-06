@@ -1,0 +1,23 @@
+extends layout
+
+block content
+    a(href='/venues?format=html').
+        go to venues
+    h1.
+        response.name
+    
+    h3.
+        Edit Venue
+    form#formAddVenue(name="editvenue",method="post",action="")
+        input#inputUserName(type="text", value=response.name, name="venuename")
+        input#inputUserEmail(type="text", value=response.category, name="venuecategory")
+        input#inputMethod(type="hidden", value="put", name="_method")
+        button#btnSubmit(type="submit") Wijzigen
+        
+    h3.
+        Delete Venue
+    form#formDeleteVenue(name="deletevenue",method="post", action="")
+        input#inputMethod(type="hidden", value="delete", name="_method")
+        button#btnSubmit(type="submit") Verwijderen
+    
+    

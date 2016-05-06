@@ -13,7 +13,13 @@ function getVenues(req, res, next)
     // var limit = 20;
     // var offset = 0;
     
-    var query = req.query;
+    // var query = req.query;
+    // var requestIsJSON = false;
+    var requestIsJSON = isFormatJSON(req);
+    if(requestIsJSON instanceof Error){
+        return next(requestIsJSON);
+    }
+    
     //If both offset and limit parameters are set.
     // if((typeof query.limit !== typeof undefined)&&(typeof query.offset !== typeof undefined))
     // {
@@ -49,7 +55,6 @@ function getVenues(req, res, next)
             results: []
         };
         
-        var index = 1;
         // _.every(docs, function(doc)
         // {
         //     if(results.count < limit)
@@ -73,19 +78,28 @@ function getVenues(req, res, next)
         {
             results.results.push
             ({
-                name: doc.name
+                name: doc.name,
+                category: doc.category
             });
-            index++;
             return true;
         });
         
         res.status(200);
-        res.json(results);
+        if(requestIsJSON){
+            res.json(results);
+        } else {
+            res.render('venues', { results: results.results });
+        }
+        
     });
 };
 
 function getOneVenue(req, res, next)
 {
+    var requestIsJSON = isFormatJSON(req);
+    if(requestIsJSON instanceof Error){
+        return next(requestIsJSON);
+    }
     var query = 
     {
         name: req.params.name
@@ -96,7 +110,6 @@ function getOneVenue(req, res, next)
         {
             return next();
         }
-        
         if(err)
         { 
             err = new Error();
@@ -104,7 +117,6 @@ function getOneVenue(req, res, next)
             err.message = 'Internal Server Error';
             return next(err);
         }
-        
         if(!doc.isMapped)
         {
             DataMapper.mapVenue(doc, function(error)
@@ -113,9 +125,13 @@ function getOneVenue(req, res, next)
                 next(error);
             }, function(response)
             {
-                console.log('Mapping of Venue data for: ' + doc.name + ' has been done.')
                 res.status(200);
-                res.json(response);
+                //res.json(response);
+                if(requestIsJSON){
+                    res.json("response: "+response);
+                } else {
+                    res.render('singleVenue', { response: response });
+                }
             });
         }
         else
@@ -126,36 +142,120 @@ function getOneVenue(req, res, next)
                 category: doc.get('category')
             };
             res.status(200);
-            res.json(response);
+            if(requestIsJSON){
+                res.json(response);
+            } else {
+                res.render('singleVenue', { response: response });
+            }
         }
     });
 };
+
+function addVenue(req, res, next)
+{
+    var requestIsJSON = isFormatJSON(req);
+    if(requestIsJSON instanceof Error){
+        return next(requestIsJSON);
+    }
+
+    var venue = new Venue();
+    venue.name = req.body.venuename;    
+    venue.category = req.body.venuecategory;
+    venue.isMapped = true;
+    venue.save(function(error, savedVenue)
+    {
+        if(error) console.log(error);
+    });
+    
+    res.status(200);
+    if(requestIsJSON){
+        res.redirect("venues");
+    } else {
+        res.redirect("venues?format=html");
+    }
+};
+
+function postSingleVenueRequest(req, res, next){
+    var method = req.body._method;
+    if(method == "put"){
+        editVenue(req, res, next);
+    } else if(method == "delete"){
+        deleteVenue(req, res, next);
+    } else {
+        res.redirect("venues/"+req.params.name+"?format=html");
+    }
+}
+
+function deleteVenue(req, res, next)
+{
+    var requestIsJSON = isFormatJSON(req);
+    if(requestIsJSON instanceof Error){
+        return next(requestIsJSON);
+    }
+    
+    Venue.remove({ name: req.params.name }, function(err) {
+        res.status(200);
+        if(requestIsJSON){
+            res.redirect("/venues");
+        } else {
+            res.redirect("/venues?format=html");
+        }
+    });
+}
+
+function editVenue(req, res, next) {
+    var requestIsJSON = isFormatJSON(req);
+    if(requestIsJSON instanceof Error){
+        return next(requestIsJSON);
+    }
+    
+    console.log("selected venue: " + req.params.name);
+    
+    var query = { name: req.params.name , category: req.body.venuecategory};
+    var category = req.body.venuecategory;
+    //var options = { multi: false };
+    Venue.findOne({ name: req.params.name }, function (err, doc){
+        doc.name = req.body.venuename;
+        doc.category = req.body.venuecategory;
+        //doc.visits.$inc();
+        doc.save();
+    });
+    
+    res.status(200);
+    if(requestIsJSON){
+        res.redirect("");
+    } else {
+        res.redirect("?format=html");
+    }
+};
+
 
 /* ROUTING */
 
 router.get('/', getVenues);
 router.get('/:name', getOneVenue);
+router.post('/:name', postSingleVenueRequest);
 
 /* URL VALIDATION */
 
-// function checkUrlQueryValues(query)
-// {
-//     var errors = [];
-//     limit = parseInt(query.limit);
-//     offset = parseInt(query.offset);
-    
-//     //Validate parameter values.
-//     if((isNaN(limit))||(limit < 1))
-//     {
-//         errors.push("Limit parameter must be a positive number.");
-//     }
-    
-//     if((isNaN(offset))||(offset < 0))
-//     {
-//         errors.push("Offset parameter must be a positive number or zero.");
-//     }
-//     return errors;
-// }
+function isFormatJSON(req){
+    var query = req.query;
+    if(typeof query.format !== typeof undefined){
+        if(query.format == "html"){
+            // request is html
+            return false;
+        } else if(query.format == "json"){
+            return true;
+        } else {
+            var err = new Error();
+            err.status = 400;
+            err.message = "Bad Request";
+            return err;
+        }
+    } else {
+        return true;
+    }
+}
 
 /* EXPORT FUNCTION */
 
