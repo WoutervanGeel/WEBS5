@@ -27,6 +27,8 @@ build/Release
 node_modules/
 typings
 data/
+.idea/
+
 
 # Optional npm cache directory
 .npm
