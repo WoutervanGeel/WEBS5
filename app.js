@@ -7,24 +7,36 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 // Data Access Layer
-mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapi');
+//mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapi');
+mongoose.connect('mongodb://127.0.0.1/3000');
 // /Data Access Layer
 
 // Models
 require('./models/pokemon')(mongoose);
+require('./models/venue')(mongoose);
+require('./models/race')(mongoose);
 // /Models
 
-var dataMapper = require('./datamappers/pokemon')(mongoose, 'http://pokeapi.co/api/v2');
-dataMapper.mapAllPokemon(function(error)
+// var dataMapper = require('./datamappers/pokemon')(mongoose, 'http://pokeapi.co/api/v2');
+// dataMapper.mapAllPokemon(function(error)
+// {
+//     console.log(error);
+// }, function()
+// {
+//     console.log('Mapping of all external Pokemon names done.')
+// });
+var dataMapper = require('./datamappers/venue')(mongoose, 'https://api.eet.nu');
+dataMapper.mapAllVenues(function(error)
 {
     console.log(error);
 }, function()
 {
-    console.log('Mapping of all external Pokemon names done.')
+    console.log('Mapping of all external Venue names done.')
 });
 
+
 var routes = require('./routes/index');
-var pokemon = require('./routes/pokemon')(mongoose, dataMapper);
+var venues = require('./routes/venue')(mongoose, dataMapper);
 
 var app = express();
 
@@ -41,7 +53,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/pokemon', pokemon);
+app.use('/venues', venues);
 
 // send error in json.
 app.use(function(err, req, res, next)
