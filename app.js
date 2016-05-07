@@ -4,12 +4,19 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var morgan = require('morgan');
 var mongoose = require('mongoose');
+var passport = require('passport');
+var flash = require('connect-flash');
+var session = require('express-session');
+
 
 // Data Access Layer
 //mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapi');
 mongoose.connect('mongodb://127.0.0.1/3000');
 // /Data Access Layer
+
+require('./config/passport')(passport); // pass passport for configuration
 
 // Models
 //require('./models/pokemon')(mongoose);
@@ -34,12 +41,11 @@ dataMapper.mapAllVenues(function(error)
     console.log('Mapping of all external Venue names done.')
 });
 
+var app = express();
 
 var routes = require('./routes/index');
 var venues = require('./routes/venue')(mongoose, dataMapper);
 var races = require('./routes/race')(mongoose);
-
-var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -52,6 +58,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// required for passport
+app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use('/', routes);
 app.use('/venues', venues);

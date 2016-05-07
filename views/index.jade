@@ -2,5 +2,15 @@ extends layout
 
 block content
   h1= title
-  a(href='/venues?format=html').
-    go to venues
+  p Login or Register with:
+  a.btn.btn-default(href='/login')
+    span.fa.fa-user
+    |  Local Login
+  a.btn.btn-default(href='/signup')
+    span.fa.fa-user
+    |  Local Signup
+  a.btn.btn-primary(href='/auth/facebook')
+    span.fa.fa-facebook
+    |  Facebook
+  a.btn.btn-danger(href='/auth/google')
+    span.fa.fa-google-plus  Google
