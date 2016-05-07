@@ -117,7 +117,7 @@ function addRace(req, res, next)
     if(requestIsJSON instanceof Error){
         return next(requestIsJSON);
     }
-    //////////////////////////////////////////////
+    
     Race.find({}, function(err, races) {
     var racelist = [];
 
@@ -130,7 +130,7 @@ function addRace(req, res, next)
     if(racelist.length < 5){
         var venues = [];
         var race = new Race();
-        race.name = req.body.racename;    
+        race.name = req.body.name;    
         race.status = "not_started";
         race.venues = venues;
         race.save(function(error, savedRace)

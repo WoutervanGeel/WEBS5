@@ -9,8 +9,8 @@ block content
     h3.
         Edit Venue
     form#formAddVenue(name="editvenue",method="post",action="")
-        input#inputUserName(type="text", value=response.name, name="venuename")
-        input#inputUserEmail(type="text", value=response.category, name="venuecategory")
+        input#inputUserName(type="text", value=response.name, name="name")
+        input#inputUserEmail(type="text", value=response.category, name="category")
         input#inputMethod(type="hidden", value="put", name="_method")
         button#btnSubmit(type="submit") Wijzigen
         
