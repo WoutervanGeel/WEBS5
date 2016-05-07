@@ -41,6 +41,7 @@ function getVenues(req, res, next)
     
     Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
+        var count = 0;
         if(err)
         {
             err = new Error();
@@ -76,6 +77,8 @@ function getVenues(req, res, next)
         
         _.every(docs, function(doc)
         {
+            count++;
+            results.count = count;
             results.results.push
             ({
                 name: doc.name,
