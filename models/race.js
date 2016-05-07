@@ -2,22 +2,17 @@ function init(mongoose)
 {
     var Schema = mongoose.Schema;
     
-    var statusSchema = new Schema
-    ({
-        status:
-        {
-            type: String,
-            enum: ['not_started', 'started', 'ended'],
-            required: [true, 'Status is required.']
-        }
-    });
+    // var statusSchema = new Schema
+    // ({
+    //     status:
+    //     {
+    //         type: String,
+    //         enum: ['not_started', 'started', 'ended'],
+    //         required: [true, 'Status is required.']
+    //     }
+    // });
     var venueSchema = new Schema
     ({
-        index:
-        {
-            type: Number,
-            index: { unique: true }
-        },
         name:
         {
             type: String,
@@ -34,11 +29,6 @@ function init(mongoose)
     });
     var raceSchema = new Schema
     ({
-        index:
-        {
-            type: Number,
-            index: { unique: true }
-        },
         name:
         {
             type: String,
@@ -46,7 +36,10 @@ function init(mongoose)
         },
         status:
         {
-            type: statusSchema  
+            //type: statusSchema  
+            type: String,
+            enum: ['not_started', 'started', 'ended'],
+            required: [true, 'Status is required.']
         },
         venues: 
         {

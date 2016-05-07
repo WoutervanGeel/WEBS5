@@ -37,6 +37,7 @@ dataMapper.mapAllVenues(function(error)
 
 var routes = require('./routes/index');
 var venues = require('./routes/venue')(mongoose, dataMapper);
+var races = require('./routes/race')(mongoose);
 
 var app = express();
 
@@ -54,6 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/venues', venues);
+app.use('/races', races);
 
 // send error in json.
 app.use(function(err, req, res, next)

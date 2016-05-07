@@ -223,18 +223,21 @@ function editVenue(req, res, next) {
     
     res.status(200);
     if(requestIsJSON){
-        res.redirect("");
+        res.redirect("/venues");
     } else {
-        res.redirect("?format=html");
+        res.redirect("/venues?format=html");
     }
 };
 
 
 /* ROUTING */
 
+router.post('/', addVenue);
 router.get('/', getVenues);
 router.get('/:name', getOneVenue);
 router.post('/:name', postSingleVenueRequest);
+router.put('/:name', editVenue);
+router.delete('/:name', deleteVenue);
 
 /* URL VALIDATION */
 

@@ -4,18 +4,23 @@ block content
     a(href='/races?format=html').
         go to races
     h1.
-        response.name
+        response.race.name
     
     h3.
         Edit Race
     form#formAddRace(name="editrace",method="post",action="")
-        input#inputRaceName(type="text", value=response.name, name="venuename")
+        input#inputRaceName(type="text", value=response.race.name, name="racename")
         input#inputMethod(type="hidden", value="put", name="_method")
         button#btnSubmit(type="submit") Wijzigen
         
+        each venue, i in response.venues
+            li
+                p= venue.venue.name
+                    input#inputVenue(name="venuecheck_"+venue.venue.name, type='checkbox', checked=venue.checked)
+        
     h3.
-        Delete Venue
-    form#formDeleteVenue(name="deletevenue",method="post", action="")
+        Delete Race
+    form#formDeleteRace(name="deleterace",method="post", action="")
         input#inputMethod(type="hidden", value="delete", name="_method")
         button#btnSubmit(type="submit") Verwijderen
     
