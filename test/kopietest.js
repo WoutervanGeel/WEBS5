@@ -3,20 +3,19 @@ var expect = require('chai').expect;
 var should = require('chai').should();
 var _ = require('underscore');
 var async = require('async');
-
 var mongoose = require('mongoose');
-
 var mockgoose = require('mockgoose');
+
 mockgoose(mongoose);
 
-require('../models/pokemon')(mongoose);
-var Pokemon = mongoose.model('Pokemon');
+require('../models/venue')(mongoose);
+var Pokemon = mongoose.model('Venue');
 
-var dataMapper = require('../datamappers/pokemon')(mongoose);
+var dataMapper = require('../datamappers/venue')(mongoose);
 
 var app = require('express')();
-var pokemonRoute = require('../routes/pokemon')(mongoose, dataMapper);
-app.use('/pokemon', pokemonRoute);
+var venueRoute = require('../routes/venue')(mongoose, dataMapper);
+app.use('/venue', venueRoute);
 
 function makeRequest(route, statusCode, done)
 {
@@ -44,11 +43,11 @@ before(function(done)
     });
 });
 
-describe('Testing /pokemon route', function()
+describe('Testing /venue route', function()
 {
-    describe('Testing /pokemon with positive results.', function()
+    describe('Testing /venue with positive results.', function()
     {
-        it('should return a list of the first 20 Pokemon names when no query string is provided. HTTP CODE = 200', function(done)
+        it('should return a list of the first 20 venue names when no query string is provided. HTTP CODE = 200', function(done)
         {
             var databasePokemon;
             async.series
@@ -66,7 +65,7 @@ describe('Testing /pokemon route', function()
                 {
                     var expectedCount = 20;
                     
-                    makeRequest('/pokemon', 200, function(err, res)
+                    makeRequest('/venue', 200, function(err, res)
                     {
                         if(err) return callback(err);
                         
