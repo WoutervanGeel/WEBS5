@@ -91,21 +91,33 @@ function getOneRace(req, res, next)
                 return next(err);
             }
             
-            var response =
-            {
-                venues: venuelist,
-                race: {
-                    name: race.get('name'),
-                    status: race.get('status'),
-                    venue: race.get('venue')
-                }
-            };
+            var racevenue = {};
+            if(typeof race.get('venue') !== undefined){
+                racevenue = race.get('venue');
+            }
 
             res.status(200);
             if(requestIsJSON){
-                    res.json(response);
+                var response =
+                {
+                    name: race.get('name'),
+                    status: race.get('status'),
+                    venue: racevenue
+                };
+                
+                res.json(response);
             } else {
-                    res.render('singleRace', { response: response });
+                var response =
+                {
+                    venues: venuelist,
+                    race: {
+                        name: race.get('name'),
+                        status: race.get('status'),
+                        venue: racevenue
+                    }
+                };
+                
+                res.render('singleRace', { response: response });
             }
         });
     });
@@ -128,11 +140,11 @@ function addRace(req, res, next)
         });
 
     if(racelist.length < 5){
-        var venues = [];
+        //var venue = {};
         var race = new Race();
         race.name = req.body.name;    
         race.status = "not_started";
-        race.venues = venues;
+        //race.venue = venue;
         race.save(function(error, savedRace)
         {
             if(error) console.log(error);
@@ -184,11 +196,19 @@ function editRace(req, res, next) {
         return next(requestIsJSON);
     }
     
-    var query = 
-    {
-        name: req.body.dropdown
-        //name: "Yusuffa"
+    if(typeof req.body.venue.name !== undefined){
+        var query = 
+        {
+            name: req.body.venue.name
+        }
+    } else {
+        var query = 
+        {
+            name: req.body.venue
+            //name: "Yusuffa"
+        }
     }
+
     //
     Venue.findOne(query, function(err, selectedVenue)
     {
@@ -205,7 +225,12 @@ function editRace(req, res, next) {
         Race.findOne({ name: req.params.name }, function (err, race){
             race.name = req.body.name;
             race.status = "not_started";
-            race.venue = selectedVenue;
+            console.log("name: "+ race.name);
+            console.log("status: "+ race.status);
+            console.log("venue: "+ selectedVenue);
+            if(typeof selectedVenue !== undefined){
+                race.venue = selectedVenue;
+            }
             //doc.visits.$inc();
             race.save(function (err)
             {
