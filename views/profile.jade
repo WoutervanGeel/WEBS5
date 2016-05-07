@@ -29,21 +29,24 @@ html
               br
               strong password
               | : #{user.local.password}
-        // FACEBOOK INFORMATION
+        // TWITTER INFORMATION
         .col-sm-6
           .well
             h3.text-primary
-              span.fa.fa-facebook
-              |  Facebook
+              span.fa.fa-twitter
+              |  Twitter
             p
               strong id
-              | : #{user.facebook.id}
+              | : #{user.twitter.id}
               br
               strong token
-              | : #{user.facebook.token}
+              | : #{user.twitter.token}
               br
-              strong name
-              | : #{user.facebook.name}
+              strong username
+              | : #{user.twitter.username}
+              br
+              strong displayName
+              | : #{user.twitter.displayName}
         // GOOGLE INFORMATION
         .col-sm-6
           .well
