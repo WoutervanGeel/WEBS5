@@ -9,7 +9,7 @@ block content
     h3.
         Edit Race
     form#formAddRace(name="editrace",method="post",action="")
-        input#inputRaceName(type="text", value=response.race.name, name="racename")
+        input#inputRaceName(type="text", value=response.race.name, name="name")
         input#inputMethod(type="hidden", value="put", name="_method")
 
         p Select Venue for Race 
@@ -20,7 +20,7 @@ block content
         else
             p No selected venue!
         p
-            select(name = "dropdown")
+            select(name = "venue")
                 each venue, i in response.venues
                     option(value=venue.venue.name)= venue.venue.name
         br

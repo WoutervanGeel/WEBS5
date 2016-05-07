@@ -159,8 +159,8 @@ function addVenue(req, res, next)
     }
 
     var venue = new Venue();
-    venue.name = req.body.venuename;    
-    venue.category = req.body.venuecategory;
+    venue.name = req.body.name;    
+    venue.category = req.body.category;
     venue.isMapped = true;
     venue.save(function(error, savedVenue)
     {
@@ -211,12 +211,12 @@ function editVenue(req, res, next) {
     console.log("PUTTING edit Venue");
     
     
-    var query = { name: req.params.name , category: req.body.venuecategory};
-    var category = req.body.venuecategory;
+    var query = { name: req.params.name , category: req.body.category};
+    var category = req.body.category;
     //var options = { multi: false };
     Venue.findOne({ name: req.params.name }, function (err, doc){
-        doc.name = req.body.venuename;
-        doc.category = req.body.venuecategory;
+        doc.name = req.body.name;
+        doc.category = req.body.category;
         //doc.visits.$inc();
         doc.save();
     });
