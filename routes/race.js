@@ -142,7 +142,7 @@ function addRace(req, res, next)
     if(racelist.length < 5){
         //var venue = {};
         var race = new Race();
-        race.name = req.body.name;    
+        race.name = req.body.name;   
         race.status = "not_started";
         //race.venue = venue;
         race.save(function(error, savedRace)
@@ -196,7 +196,7 @@ function editRace(req, res, next) {
         return next(requestIsJSON);
     }
     
-    if(typeof req.body.venue.name !== undefined){
+    if( typeof req.body.venue == 'object'){
         var query = 
         {
             name: req.body.venue.name
@@ -225,9 +225,6 @@ function editRace(req, res, next) {
         Race.findOne({ name: req.params.name }, function (err, race){
             race.name = req.body.name;
             race.status = "not_started";
-            console.log("name: "+ race.name);
-            console.log("status: "+ race.status);
-            console.log("venue: "+ selectedVenue);
             if(typeof selectedVenue !== undefined){
                 race.venue = selectedVenue;
             }

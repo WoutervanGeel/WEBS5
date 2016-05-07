@@ -3,8 +3,7 @@ extends layout
 block content
     a(href='/races?format=html').
         go to races
-    h1.
-        response.race.name
+    h1= response.race.name
     
     h3.
         Edit Race
