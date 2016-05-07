@@ -203,7 +203,7 @@ function editRace(req, res, next) {
         
         //var options = { multi: false };
         Race.findOne({ name: req.params.name }, function (err, race){
-            race.name = req.body.racename;
+            race.name = req.body.name;
             race.status = "not_started";
             race.venue = selectedVenue;
             //doc.visits.$inc();
