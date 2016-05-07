@@ -208,8 +208,8 @@ function editVenue(req, res, next) {
     if(requestIsJSON instanceof Error){
         return next(requestIsJSON);
     }
+    console.log("PUTTING edit Venue");
     
-    console.log("selected venue: " + req.params.name);
     
     var query = { name: req.params.name , category: req.body.venuecategory};
     var category = req.body.venuecategory;

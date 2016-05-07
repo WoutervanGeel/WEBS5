@@ -91,25 +91,13 @@ function getOneRace(req, res, next)
                 return next(err);
             }
             
-            _.every(venuelist, function(venuelistitem)
-            {
-                _.every(race.venues, function(venue)
-                {
-                    if(venuelistitem.venue.name === venue.name){
-                        venuelistitem.checked = true;
-                    }
-                    // venuelist.push(venue);
-                    return true;
-                });
-                return true;
-            });
-            
             var response =
             {
                 venues: venuelist,
                 race: {
                     name: race.get('name'),
-                    status: race.get('status')
+                    status: race.get('status'),
+                    venue: race.get('venue')
                 }
             };
 
@@ -196,17 +184,38 @@ function editRace(req, res, next) {
         return next(requestIsJSON);
     }
     
-    
-    var query = { name: req.params.name , status: req.body.racestatus};
-    var racestatus = req.body.racestatus;
-    
-    //var options = { multi: false };
-    Race.findOne({ name: req.params.name }, function (err, race){
-        race.name = req.body.racename;
-        race.status = "not_started";
-        //doc.visits.$inc();
-        race.save();
+    var query = 
+    {
+        name: req.body.dropdown
+        //name: "Yusuffa"
+    }
+    //
+    Venue.findOne(query, function(err, selectedVenue)
+    {
+        // var response =
+        // {
+        //     name: selectedVenue.get('name'),
+        //     category: selectedVenue.get('category')
+        // };
+
+        var query = { name: req.params.name , status: req.body.racestatus};
+        var racestatus = req.body.racestatus;
+        
+        //var options = { multi: false };
+        Race.findOne({ name: req.params.name }, function (err, race){
+            race.name = req.body.racename;
+            race.status = "not_started";
+            race.venue = selectedVenue;
+            //doc.visits.$inc();
+            race.save(function (err)
+            {
+                console.log('save err', err);
+            });
+        });
     });
+    //
+    
+    
     
     res.status(200);
     if(requestIsJSON){

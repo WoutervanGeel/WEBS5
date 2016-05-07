@@ -2,17 +2,12 @@ function init(mongoose)
 {
     var Schema = mongoose.Schema;
     
-    // var statusSchema = new Schema
-    // ({
-    //     status:
-    //     {
-    //         type: String,
-    //         enum: ['not_started', 'started', 'ended'],
-    //         required: [true, 'Status is required.']
-    //     }
-    // });
     var venueSchema = new Schema
     ({
+        index:
+        {
+            type: Number
+        },
         name:
         {
             type: String,
@@ -41,9 +36,9 @@ function init(mongoose)
             enum: ['not_started', 'started', 'ended'],
             required: [true, 'Status is required.']
         },
-        venues: 
+        venue: 
         {
-            type: [venueSchema]
+            type: venueSchema
         }
     });
     
