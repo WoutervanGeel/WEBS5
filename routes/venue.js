@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
+var Validate = require('../config/validate');
 
 var Venue;
 var DataMapper;
@@ -41,6 +42,7 @@ function getVenues(req, res, next)
     
     Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
+        var count = 0;
         if(err)
         {
             err = new Error();
@@ -76,6 +78,8 @@ function getVenues(req, res, next)
         
         _.every(docs, function(doc)
         {
+            count++;
+            results.count = count;
             results.results.push
             ({
                 name: doc.name,
@@ -232,12 +236,12 @@ function editVenue(req, res, next) {
 
 /* ROUTING */
 
-router.post('/', addVenue);
-router.get('/', getVenues);
-router.get('/:name', getOneVenue);
-router.post('/:name', postSingleVenueRequest);
-router.put('/:name', editVenue);
-router.delete('/:name', deleteVenue);
+router.post('/', Validate.admin, addVenue);
+router.get('/', Validate.user, getVenues);
+router.get('/:name', Validate.user, getOneVenue);
+router.post('/:name', Validate.admin, postSingleVenueRequest);
+router.put('/:name', Validate.admin, editVenue);
+router.delete('/:name', Validate.admin, deleteVenue);
 
 /* URL VALIDATION */
 

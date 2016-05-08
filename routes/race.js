@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
+var Validate = require('../config/validate');
 
 var Race;
 
@@ -250,12 +251,12 @@ function editRace(req, res, next) {
 
 /* ROUTING */
 
-router.post('/', addRace);
-router.get('/', getRaces);
-router.get('/:name', getOneRace);
-router.post('/:name', postSingleRaceRequest);
-router.put('/:name', editRace);
-router.delete('/:name', deleteRace);
+router.post('/', Validate.admin, addRace);
+router.get('/', Validate.user, getRaces);
+router.get('/:name', Validate.user, getOneRace);
+router.post('/:name', Validate.admin, postSingleRaceRequest);
+router.put('/:name', Validate.admin, editRace);
+router.delete('/:name', Validate.admin, deleteRace);
 
 /* URL VALIDATION */
 

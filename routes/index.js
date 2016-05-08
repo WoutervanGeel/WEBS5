@@ -1,23 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var passport = require('passport');
-
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) {
-    console.log(req.user.admin);
-    return next();
-  }
-  res.redirect('/');
-}
-
-function isAdmin(req, res, next) {
-  if (req.isAuthenticated()) {
-    if(req.user.group == "admin")
-      return next();
-  }
-  res.redirect('/');
-}
-
+var http = require('http');
+var Validate = require('../config/validate');
 
 router.get('/', function(req, res) {
   res.render('index'); // load the index.ejs file
@@ -43,7 +28,7 @@ router.post('/signup', passport.authenticate('local-signup', {
   failureFlash : true // allow flash messages
 }));
 
-router.get('/profile', isLoggedIn, function(req, res) {
+router.get('/profile', Validate.admin, function(req, res) {
   res.render('profile', {
     user : req.user // get the user out of session and pass to template
   });
