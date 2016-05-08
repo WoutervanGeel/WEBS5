@@ -4,13 +4,13 @@ module.exports = {
     'twitterAuth' : {
         'consumerKey'       : 'WZORisciMS2X5HxFdvr4yUtlr',
         'consumerSecret'    : '7WKjJJeBzLKa8EgZkgzhsbE1tU5m75jGRkejgAZJLmpeN7YtGg',
-        'callbackURL'       : 'https://venuerace-gw.herokuapp.com/twitter/callback'
+        'callbackURL'       : 'https://venuerace-gw.herokuapp.com/auth/twitter/callback'
     },
 
     'googleAuth' : {
         'clientID'      : '637434521016-qjbv08al2u2clrp9hh0i5sj9m0g36b32.apps.googleusercontent.com',
         'clientSecret'  : 'DEzj0SmTaKdHRsld-hRmJQlF',
-        'callbackURL'   : 'https://venuerace-gw.herokuapp.com/google/callback'
+        'callbackURL'   : 'https://venuerace-gw.herokuapp.com/auth/google/callback'
     }
 
 };
