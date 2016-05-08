@@ -184,7 +184,7 @@ function deleteRace(req, res, next)
     Race.remove({ name: req.params.name }, function(err) {
         res.status(200);
         if(requestIsJSON){
-            res.redirect("/races");
+            res.send({redirect: '/races'});
         } else {
             res.redirect("/races?format=html");
         }
@@ -242,7 +242,7 @@ function editRace(req, res, next) {
     
     res.status(200);
     if(requestIsJSON){
-        res.redirect("/races");
+        res.send({redirect: '/races'});
     } else {
         res.redirect("/races?format=html");
     }

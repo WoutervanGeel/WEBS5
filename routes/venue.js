@@ -200,7 +200,7 @@ function deleteVenue(req, res, next)
     Venue.remove({ name: req.params.name }, function(err) {
         res.status(200);
         if(requestIsJSON){
-            res.redirect("/venues");
+            res.send({redirect: '/venues'});
         } else {
             res.redirect("/venues?format=html");
         }
@@ -227,7 +227,7 @@ function editVenue(req, res, next) {
     
     res.status(200);
     if(requestIsJSON){
-        res.redirect("/venues");
+        res.send({redirect: '/venues'});
     } else {
         res.redirect("/venues?format=html");
     }
