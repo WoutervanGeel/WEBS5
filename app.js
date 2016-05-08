@@ -10,10 +10,20 @@ var passport = require('passport');
 var flash = require('connect-flash');
 var session = require('express-session');
 
+const username = 'wouter';
+const password = 'admin';
 
-// Data Access Layer
-//mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapi');
-mongoose.connect('mongodb://127.0.0.1/3000');
+//var mongoose = require('mongoose');
+
+var url = 'mongodb://' + username + ':' + password + '@ds017432.mlab.com:17432/venuerace_database';
+
+mongoose.connect(url, function(err) {
+    if(err){
+        console.log(err);        
+    }
+    console.log('Connection to database established');
+});
+
 // /Data Access Layer
 
 require('./config/passport')(passport); // pass passport for configuration
