@@ -13,7 +13,7 @@ var session = require('express-session');
 const username = 'wouter';
 const password = 'admin';
 
-//var mongoose = require('mongoose');
+// Heroku link: https://venuerace-gw.herokuapp.com/
 
 var url = 'mongodb://' + username + ':' + password + '@ds017432.mlab.com:17432/venuerace_database';
 
