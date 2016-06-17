@@ -1,0 +1,49 @@
+extends layout
+
+block content
+    .container
+        h1
+          span
+          |  Add Venue
+
+        if (message)
+          .alert.alert-danger #{message}
+          
+        // Venues CREATE FORM
+        form(action='/venues', method='post')
+          .form-group
+            label Name
+            input.form-control(type='text', name='name')
+          .form-group
+            label Category
+            input.form-control(type='text', name='category')
+          button.btn.btn-warning.btn-lg(type='submit') Create
+        hr
+        h1
+          span
+          |  Add Race
+
+        if (message)
+          .alert.alert-danger #{message}
+          
+        // Races CREATE FORM
+        form(action='/races', method='post')
+          .form-group
+            label Name
+            input.form-control(type='text', name='name')
+          button.btn.btn-warning.btn-lg(type='submit') Create
+        hr
+        h1
+          span
+          |  Edit Race
+
+        div.list-group
+            each race, i in results.races
+                a.list-group-item(href='#')= race.name
+                
+        // Races EDIT FORM
+        form(action='/races', method='put')
+          .form-group
+            label Name
+            input.form-control(type='text', name='name')
+          button.btn.btn-warning.btn-lg(type='submit') Edit
