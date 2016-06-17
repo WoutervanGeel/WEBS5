@@ -42,6 +42,13 @@ function init(mongoose)
         }
     });
     
+    raceSchema.statics.getData = function() {
+        return {
+            name: this.name,
+            venue: this.venue.getBasicData()
+        };
+    };
+    
     mongoose.model('Race', raceSchema);
 };
 
