@@ -1,23 +1,14 @@
 extends layout
 
 block content
-    a(href='/venues?format=html').
+    a(href='/venues').
         go to venues
     h1.
         #{response.name}
-    
-    h3.
-        Edit Venue
-    form#formAddVenue(name="editvenue",method="post",action="")
-        input#inputUserName(type="text", value=response.name, name="name")
-        input#inputUserEmail(type="text", value=response.category, name="category")
-        input#inputMethod(type="hidden", value="put", name="_method")
-        button#btnSubmit(type="submit") Wijzigen
-        
-    h3.
-        Delete Venue
-    form#formDeleteVenue(name="deletevenue",method="post", action="")
-        input#inputMethod(type="hidden", value="delete", name="_method")
-        button#btnSubmit(type="submit") Verwijderen
-    
-    
+    table.table.table-bordered
+        tr
+            th= "Name"
+            td= response.name
+        tr
+            th= "Category"
+            td= response.category

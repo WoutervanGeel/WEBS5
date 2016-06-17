@@ -2,84 +2,31 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
-var Validate = require('../config/validate');
+var Authentication = require('../config/authentication');
+var Response = require('../config/responses');
 
 var Venue;
 var DataMapper;
 
 /* REQUEST HANDLER FUNCTIONS */
+function getAll(req, res, next) {
 
-function getVenues(req, res, next)
-{
-    // var limit = 20;
-    // var offset = 0;
-    
-    // var query = req.query;
-    // var requestIsJSON = false;
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
-    //If both offset and limit parameters are set.
-    // if((typeof query.limit !== typeof undefined)&&(typeof query.offset !== typeof undefined))
-    // {
-    //     var errors = checkUrlQueryValues(query);
-    //     if(errors.length != 0)
-    //     {
-    //         err = new Error();
-    //         err.status = 400;
-    //         err.message = 'Bad Request';
-    //         err.errors = errors;
-    //         return next(err);
-    //     }
-    //     else
-    //     {
-    //         limit = query.limit;
-    //         offset = query.offset;
-    //     }
-    // }
-    
     Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
-        var count = 0;
-        if(err)
+        var results =
         {
-            err = new Error();
-            err.status = 500;
-            err.message = 'Internal Server Error';
-            return next(err);
-        }
-        
-        var results = 
-        {
-            count: 0,
+            count: docs.count,
             results: []
         };
-        
-        // _.every(docs, function(doc)
-        // {
-        //     if(results.count < limit)
-        //     {
-        //         if(index > offset)
-        //         {
-        //             results.results.push
-        //             ({
-        //                 name: doc.name
-        //             });
-        //             results.count++;
-        //         }
-        //     }
-        //     else return false;
 
-        //     index++;
-        //     return true;
-        // });
-        
+        if(err)
+        {
+            Response.setServerError(req,res);
+            return next();
+        }
+
         _.every(docs, function(doc)
         {
-            count++;
-            results.count = count;
             results.results.push
             ({
                 name: doc.name,
@@ -87,185 +34,163 @@ function getVenues(req, res, next)
             });
             return true;
         });
-        
+
         res.status(200);
-        if(requestIsJSON){
+        if(Response.requestJson(req)){
             res.json(results);
         } else {
             res.render('venues', { results: results.results });
         }
-        
     });
-};
+}
 
-function getOneVenue(req, res, next)
+function getVenue(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    var query = 
-    {
-        name: req.params.name
-    }
-    Venue.findOne(query, function(err, doc)
+    Venue.findOne({ name: req.params.name }, function(err, doc)
     {
         if(doc == null)
         {
+            Response.setNotFound(req,res);
             return next();
         }
+
         if(err)
-        { 
-            err = new Error();
-            err.status = 500;
-            err.message = 'Internal Server Error';
-            return next(err);
+        {
+            Response.setServerError(req,res);
+            return next();
         }
+
         if(!doc.isMapped)
         {
-            DataMapper.mapVenue(doc, function(error)
-            {
-                error.status = 500;
-                next(error);
-            }, function(response)
-            {
-                res.status(200);
-                //res.json(response);
-                if(requestIsJSON){
-                    res.json("response: "+response);
-                } else {
-                    res.render('singleVenue', { response: response });
-                }
-            });
+            DataMapper.mapVenue(doc,
+                function() {
+                    Response.setServerError(req,res);
+                    return next();
+                },
+                function(result) {
+                    res.status(200);
+                    if (Response.requestJson(req))
+                        res.json(result);
+                    else
+                        res.render("singleVenue", {response: result });
+                });
         }
         else
         {
-            var response =
+            var result =
             {
                 name: doc.get('name'),
                 category: doc.get('category')
             };
+
             res.status(200);
-            if(requestIsJSON){
-                res.json(response);
-            } else {
-                res.render('singleVenue', { response: response });
-            }
+            if(Response.requestJson(req))
+                res.json(result);
+            else
+                res.render("singleVenue", { response: result });
         }
+
     });
-};
+}
 
 function addVenue(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-
-    var venue = new Venue();
-    venue.name = req.body.name;    
-    venue.category = req.body.category;
-    venue.isMapped = true;
-    venue.save(function(error, savedVenue)
+    if(req.body.name != null && req.body.category != null)
     {
-        if(error) console.log(error);
-    });
-    
-    res.status(200);
-    if(requestIsJSON){
-        res.redirect("venues");
-    } else {
-        res.redirect("venues?format=html");
-    }
-};
+        var venue = new Venue();
+        venue.name = req.body.name;
+        venue.category = req.body.category;
+        venue.isMapped = true;
+        venue.save(function(error, savedVenue)
+        {
+            if(error) {
+                Response.setServerError(req,res);
+                return next();
+            }
 
-function postSingleVenueRequest(req, res, next){
-    var method = req.body._method;
-    if(method == "put"){
-        editVenue(req, res, next);
-    } else if(method == "delete"){
-        deleteVenue(req, res, next);
-    } else {
-        res.redirect("venues/"+req.params.name+"?format=html");
+            var result =
+            {
+                name: savedVenue.name,
+                category: savedVenue.category
+            };
+
+            res.status(200);
+            if(Response.requestJson(req))
+                res.json(result);
+            else
+                res.render("singleVenue", { response: result });
+        });
+    }
+    else
+    {
+        Response.setMissingFields(req,res);
     }
 }
 
 function deleteVenue(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
-    Venue.remove({ name: req.params.name }, function(err) {
-        res.status(200);
-        if(requestIsJSON){
-            res.send({redirect: '/venues'});
-        } else {
-            res.redirect("/venues?format=html");
+    Venue.remove({ name: req.params.name }, function(err, obj) {
+        if(obj.result.n === 0) {
+            Response.setNotFound(req,res);
+            return next();
         }
+        if(err)
+            Response.setServerError(req,res);
+        else
+            Response.showDeleteSuccess(req,res, req.params.name)
     });
 }
 
 function editVenue(req, res, next) {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
+
+    if(req.body.name != null && req.body.category != null)
+    {
+        Venue.findOne({ name: req.params.name }, function (err, doc){
+
+            if(doc == null)
+            {
+                Response.setNotFound(req,res);
+                return next();
+            }
+
+            if(err)
+            {
+                Response.setServerError(req,res);
+                return next();
+            }
+
+            doc.name = req.body.name;
+            doc.category = req.body.category;
+            doc.save();
+
+            var result =
+            {
+                name: doc.name,
+                category: doc.category
+            };
+
+            res.status(200);
+            if(Response.requestJson(req))
+                res.json(result);
+            else
+                res.render("singleVenue", { response: result });
+        });
     }
-    console.log("PUTTING edit Venue");
-    
-    
-    var query = { name: req.params.name , category: req.body.category};
-    var category = req.body.category;
-    //var options = { multi: false };
-    Venue.findOne({ name: req.params.name }, function (err, doc){
-        doc.name = req.body.name;
-        doc.category = req.body.category;
-        //doc.visits.$inc();
-        doc.save();
-    });
-    
-    res.status(200);
-    if(requestIsJSON){
-        res.send({redirect: '/venues'});
-    } else {
-        res.redirect("/venues?format=html");
+    else
+    {
+        Response.setMissingFields(req,res);
     }
-};
 
-
-/* ROUTING */
-
-router.post('/', Validate.admin, addVenue);
-router.get('/', Validate.user, getVenues);
-router.get('/:name', Validate.user, getOneVenue);
-router.post('/:name', Validate.admin, postSingleVenueRequest);
-router.put('/:name', Validate.admin, editVenue);
-router.delete('/:name', Validate.admin, deleteVenue);
-
-/* URL VALIDATION */
-
-function isFormatJSON(req){
-    var query = req.query;
-    if(typeof query.format !== typeof undefined){
-        if(query.format == "html"){
-            // request is html
-            return false;
-        } else if(query.format == "json"){
-            return true;
-        } else {
-            var err = new Error();
-            err.status = 400;
-            err.message = "Bad Request";
-            return err;
-        }
-    } else {
-        return true;
-    }
 }
 
-/* EXPORT FUNCTION */
+/* ROUTING */
+router.get('/', Authentication.requireUser, getAll);
+router.get('/:name', Authentication.requireUser, getVenue);
+router.post('/', Authentication.requireAdmin, addVenue);
+router.put('/:name', Authentication.requireAdmin, editVenue);
+router.delete('/:name', Authentication.requireAdmin, deleteVenue);
 
+/* EXPORT FUNCTION */
 module.exports = function(mongoose, mapper)
 {
     DataMapper = mapper;

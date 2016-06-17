@@ -53,6 +53,8 @@ dataMapper.mapAllVenues(function(error)
 
 var app = express();
 
+
+
 var routes = require('./routes/index')(mongoose);
 var venues = require('./routes/venue')(mongoose, dataMapper);
 var races = require('./routes/race')(mongoose);

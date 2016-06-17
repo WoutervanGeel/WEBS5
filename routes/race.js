@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
-var Validate = require('../config/validate');
+var Authentication = require('../config/authentication');
+var Response = require('../config/responses');
 
 var Race;
 
@@ -10,32 +11,21 @@ var Race;
 
 function getRaces(req, res, next)
 {
-    // var limit = 20;
-    // var offset = 0;
-    
-    // var query = req.query;
-    // var requestIsJSON = false;
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
+
     Race.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
-        if(err)
+        var results =
         {
-            err = new Error();
-            err.status = 500;
-            err.message = 'Internal Server Error';
-            return next(err);
-        }
-        
-        var results = 
-        {
-            count: 0,
+            count: docs.count,
             results: []
         };
-        
+
+        if(err)
+        {
+            Response.setServerError(req,res);
+            return next();
+        }
+
         _.every(docs, function(doc)
         {
             results.results.push
@@ -46,7 +36,7 @@ function getRaces(req, res, next)
         });
         
         res.status(200);
-        if(requestIsJSON){
+        if(Response.requestJson(req)){
             res.json(results);
         } else {
             res.render('races', { results: results.results });
@@ -57,15 +47,11 @@ function getRaces(req, res, next)
 
 function getOneRace(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    var query = 
+    var query =
     {
         name: req.params.name
     }
-    /////////////////////////////////////////////////////////////////////////////////////////
+
     Venue.find({}, function(err, venues) {
         var venuelist = [];
 
@@ -85,27 +71,27 @@ function getOneRace(req, res, next)
                 return next();
             }
             if(err)
-            { 
+            {
                 err = new Error();
                 err.status = 500;
                 err.message = 'Internal Server Error';
                 return next(err);
             }
-            
+
             var racevenue = {};
             if(typeof race.get('venue') !== undefined){
                 racevenue = race.get('venue');
             }
 
             res.status(200);
-            if(requestIsJSON){
+            if(Response.requestJson(req)){
                 var response =
                 {
                     name: race.get('name'),
                     status: race.get('status'),
                     venue: racevenue
                 };
-                
+
                 res.json(response);
             } else {
                 var response =
@@ -117,7 +103,7 @@ function getOneRace(req, res, next)
                         venue: racevenue
                     }
                 };
-                
+
                 res.render('singleRace', { response: response });
             }
         });
@@ -126,11 +112,7 @@ function getOneRace(req, res, next)
 
 function addRace(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
+
     Race.find({}, function(err, races) {
     var racelist = [];
 
@@ -153,7 +135,7 @@ function addRace(req, res, next)
  
     }
     res.status(200);
-    if(requestIsJSON){
+    if(Response.requestJson(req)){
         res.redirect("races");
     } else {
         res.redirect("races?format=html");
@@ -163,40 +145,22 @@ function addRace(req, res, next)
   });
 };
 
-function postSingleRaceRequest(req, res, next){
-    var method = req.body._method;
-    if(method == "put"){
-        editRace(req, res, next);
-    } else if(method == "delete"){
-        deleteRace(req, res, next);
-    } else {
-        res.redirect("races/"+req.params.name+"?format=html");
-    }
-}
-
 function deleteRace(req, res, next)
 {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
-    Race.remove({ name: req.params.name }, function(err) {
-        res.status(200);
-        if(requestIsJSON){
-            res.send({redirect: '/races'});
-        } else {
-            res.redirect("/races?format=html");
+    Race.remove({ name: req.params.name }, function(err, obj) {
+        if(obj.result.n === 0) {
+            Response.setNotFound(req,res);
+            return next();
         }
+        if(err)
+            Response.setServerError(req,res);
+        else
+            Response.showDeleteSuccess(req,res, req.params.name)
     });
 }
 
 function editRace(req, res, next) {
-    var requestIsJSON = isFormatJSON(req);
-    if(requestIsJSON instanceof Error){
-        return next(requestIsJSON);
-    }
-    
+
     if( typeof req.body.venue == 'object'){
         var query = 
         {
@@ -237,11 +201,9 @@ function editRace(req, res, next) {
         });
     });
     //
-    
-    
-    
+
     res.status(200);
-    if(requestIsJSON){
+    if(Response.requestJson(req)){
         res.send({redirect: '/races'});
     } else {
         res.redirect("/races?format=html");
@@ -251,33 +213,11 @@ function editRace(req, res, next) {
 
 /* ROUTING */
 
-router.post('/', Validate.admin, addRace);
-router.get('/', Validate.user, getRaces);
-router.get('/:name', Validate.user, getOneRace);
-router.post('/:name', Validate.admin, postSingleRaceRequest);
-router.put('/:name', Validate.admin, editRace);
-router.delete('/:name', Validate.admin, deleteRace);
-
-/* URL VALIDATION */
-
-function isFormatJSON(req){
-    var query = req.query;
-    if(typeof query.format !== typeof undefined){
-        if(query.format == "html"){
-            // request is html
-            return false;
-        } else if(query.format == "json"){
-            return true;
-        } else {
-            var err = new Error();
-            err.status = 400;
-            err.message = "Bad Request";
-            return err;
-        }
-    } else {
-        return true;
-    }
-}
+router.get('/', Authentication.requireUser, getRaces);
+router.get('/:name', Authentication.requireUser, getOneRace); // todo
+router.post('/', Authentication.requireAdmin, addRace); // todo
+router.put('/:name', Authentication.requireAdmin, editRace); // todo
+router.delete('/:name', Authentication.requireAdmin, deleteRace);
 
 /* EXPORT FUNCTION */
 
