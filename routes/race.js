@@ -20,8 +20,7 @@ function getRaces(req, res, next)
         return next(requestIsJSON);
     }
     
-    Race.find({}).sort({index:'ascending'}).exec(function(err, docs)
-    {
+    Race.find({}, function(err, races) {
         if(err)
         {
             err = new Error();
@@ -32,15 +31,16 @@ function getRaces(req, res, next)
         
         var results = 
         {
-            count: 0,
-            results: []
+            races: []
         };
         
-        _.every(docs, function(doc)
+        _.every(races, function(race)
         {
-            results.results.push
+            results.races.push
             ({
-                name: doc.name
+                name: race.name,
+                status: race.status,
+                venue: race.venue
             });
             return true;
         });
@@ -49,9 +49,8 @@ function getRaces(req, res, next)
         if(requestIsJSON){
             res.json(results);
         } else {
-            res.render('races', { results: results.results });
+            res.render('races', { results: results.races });
         }
-        
     });
 };
 
@@ -61,11 +60,8 @@ function getOneRace(req, res, next)
     if(requestIsJSON instanceof Error){
         return next(requestIsJSON);
     }
-    var query = 
-    {
-        name: req.params.name
-    }
-    /////////////////////////////////////////////////////////////////////////////////////////
+    var name = req.params.name;
+    
     Venue.find({}, function(err, venues) {
         var venuelist = [];
 
@@ -78,7 +74,8 @@ function getOneRace(req, res, next)
                 return true;
             });
 
-        Race.findOne(query, function(err, race)
+        Race.findByName(name, function(err, race)
+        // Race.findOne(query, function(err, race)
         {
             if(race == null)
             {
@@ -91,33 +88,18 @@ function getOneRace(req, res, next)
                 err.message = 'Internal Server Error';
                 return next(err);
             }
-            
-            var racevenue = {};
-            if(typeof race.get('venue') !== undefined){
-                racevenue = race.get('venue');
-            }
 
             res.status(200);
             if(requestIsJSON){
-                var response =
-                {
-                    name: race.get('name'),
-                    status: race.get('status'),
-                    venue: racevenue
-                };
-                
+                var response = race;
                 res.json(response);
             } else {
                 var response =
                 {
                     venues: venuelist,
-                    race: {
-                        name: race.get('name'),
-                        status: race.get('status'),
-                        venue: racevenue
-                    }
+                    race: race
                 };
-                
+                console.log(response.race);
                 res.render('singleRace', { response: response });
             }
         });
@@ -131,36 +113,43 @@ function addRace(req, res, next)
         return next(requestIsJSON);
     }
     
-    Race.find({}, function(err, races) {
-    var racelist = [];
+    Race.find({},function(err, races) {
 
-    _.every(races, function(race)
-        {
-            racelist.push(race);
-            return true;
-        });
+        if(races.length < 5){
+            console.log(races);
+            console.log(races.length);
+            var newRace = new Race();
+            newRace.name = req.body.name;   
+            newRace.status = "not_started";
+            newRace.venue = req.body.venue;
+            newRace.save(function(error, savedRace)
+            {
+                if(error){
+                    res.status(400);
+                    if(requestIsJSON){
+                        res.redirect("races");
+                    } else {
+                        res.redirect("races?format=html");
+                    }
+                } else {
+                    res.status(200);
+                    if(requestIsJSON){
+                        res.redirect("races");
+                    } else {
+                        res.redirect("races?format=html");
+                    }
+                }
+            });
 
-    if(racelist.length < 5){
-        //var venue = {};
-        var race = new Race();
-        race.name = req.body.name;   
-        race.status = "not_started";
-        //race.venue = venue;
-        race.save(function(error, savedRace)
-        {
-            if(error) console.log(error);
-        });
- 
-    }
-    res.status(200);
-    if(requestIsJSON){
-        res.redirect("races");
-    } else {
-        res.redirect("races?format=html");
-    }
-    
-
-  });
+        } else {
+            res.status(400);
+            if(requestIsJSON){
+                res.redirect("races");
+            } else {
+                res.redirect("races?format=html");
+            }
+        }
+    });
 };
 
 function postSingleRaceRequest(req, res, next){
@@ -197,48 +186,19 @@ function editRace(req, res, next) {
         return next(requestIsJSON);
     }
     
-    if( typeof req.body.venue == 'object'){
-        var query = 
-        {
-            name: req.body.venue.name
-        }
-    } else {
-        var query = 
-        {
-            name: req.body.venue
-            //name: "Yusuffa"
-        }
-    }
-
-    //
-    Venue.findOne(query, function(err, selectedVenue)
-    {
-        // var response =
-        // {
-        //     name: selectedVenue.get('name'),
-        //     category: selectedVenue.get('category')
-        // };
-
-        var query = { name: req.params.name , status: req.body.racestatus};
-        var racestatus = req.body.racestatus;
+    Race.findOne({ name: req.params.name }, function (err, race){
+        race.name = req.body.name;
+        race.status = "not_started";
+        race.venue = req.body.venue;
         
-        //var options = { multi: false };
-        Race.findOne({ name: req.params.name }, function (err, race){
-            race.name = req.body.name;
-            race.status = "not_started";
-            if(typeof selectedVenue !== undefined){
-                race.venue = selectedVenue;
-            }
-            //doc.visits.$inc();
-            race.save(function (err)
-            {
-                console.log('save err', err);
-            });
+        console.log("saved race ---: ", race);
+        
+        race.save(function(error, savedRace)
+        {
+            if(error) console.log("error:",error);
+            console.log(savedRace);
         });
     });
-    //
-    
-    
     
     res.status(200);
     if(requestIsJSON){

@@ -31,6 +31,10 @@ function init(mongoose)
         };
     };
     
+    venueSchema.statics.findByName = function (name, callback) {
+        return this.find({name: name}, callback);
+    };
+    
     mongoose.model('Venue', venueSchema);
 };
 
