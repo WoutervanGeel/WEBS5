@@ -21,6 +21,22 @@ block content
         hr
         h1
           span
+          |  Edit Venue
+
+        div#editVenueList.list-group
+            each venue, i in results.venues
+                a.list-group-item(href='#')= venue.name
+                
+        // Venues EDIT FORM
+        form
+          .form-group
+            label Name
+            input#editVenueName.form-control(type='text', name='name')
+            input#editVenueCategory.form-control(type='text', name='category')
+          button#editVenueButton.btn.btn-warning.btn-lg(type='submit') Edit
+        hr
+        h1
+          span
           |  Add Race
 
         if (message)
@@ -42,7 +58,7 @@ block content
                 a.list-group-item(href='#')= race.name
                 
         // Races EDIT FORM
-        form(action='', method='put')
+        form
           .form-group
             label Name
             input#editRaceName.form-control(type='text', name='name')
@@ -52,5 +68,3 @@ block content
                 each venue, v in results.venues
                   option= venue.name
           button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
-          
-          div.testClass
