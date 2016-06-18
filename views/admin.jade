@@ -37,16 +37,20 @@ block content
           span
           |  Edit Race
 
-        div.list-group
+        div#editRaceList.list-group
             each race, i in results.races
-                a.list-group-item(href='#', onclick='document.getElementById("editRace").value = this.innerHTML')= race.name
+                a.list-group-item(href='#')= race.name
                 
         // Races EDIT FORM
         form(action='', method='put')
           .form-group
             label Name
             input#editRaceName.form-control(type='text', name='name')
-            input#editRaceVenue.form-control(type='text', name='venue')
+            .form-group
+              select#editRaceVenue.form-control
+                option= null
+                each venue, v in results.venues
+                  option= venue.name
           button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
           
           div.testClass
