@@ -10,14 +10,14 @@ block content
           .alert.alert-danger #{message}
           
         // Venues CREATE FORM
-        form(action='/venues', method='post')
+        form
           .form-group
             label Name
-            input.form-control(type='text', name='name')
+            input#newVenueName.form-control(type='text', name='newVenueName')
           .form-group
             label Category
-            input.form-control(type='text', name='category')
-          button.btn.btn-warning.btn-lg(type='submit') Create
+            input#newVenueCategory.form-control(type='text', name='newVenueCategory')
+          button#addVenueButton.btn.btn-warning.btn-lg(type='submit') Create
         hr
         h1
           span
@@ -27,11 +27,11 @@ block content
           .alert.alert-danger #{message}
           
         // Races CREATE FORM
-        form(action='/races', method='post')
+        form
           .form-group
             label Name
-            input.form-control(type='text', name='name')
-          button.btn.btn-warning.btn-lg(type='submit') Create
+            input#newRaceName.form-control(type='text', name='name')
+          button#addRaceButton.btn.btn-warning.btn-lg(type='submit') Create
         hr
         h1
           span
@@ -45,7 +45,8 @@ block content
         form(action='', method='put')
           .form-group
             label Name
-            input.form-control(id='editRace', type='text', name='name')
-          button.btn.btn-warning.btn-lg(type='submit') Edit
+            input#editRaceName.form-control(type='text', name='name')
+            input#editRaceVenue.form-control(type='text', name='venue')
+          button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
           
           div.testClass
