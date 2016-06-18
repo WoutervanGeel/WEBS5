@@ -39,11 +39,13 @@ block content
 
         div.list-group
             each race, i in results.races
-                a.list-group-item(href='#')= race.name
+                a.list-group-item(href='#', onclick='document.getElementById("editRace").value = this.innerHTML')= race.name
                 
         // Races EDIT FORM
-        form(action='/races', method='put')
+        form(action='', method='put')
           .form-group
             label Name
-            input.form-control(type='text', name='name')
+            input.form-control(id='editRace', type='text', name='name')
           button.btn.btn-warning.btn-lg(type='submit') Edit
+          
+          div.testClass

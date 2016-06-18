@@ -189,6 +189,7 @@ function editRace(req, res, next) {
     Race.findOne({ name: req.params.name }, function (err, race){
         race.name = req.body.name;
         race.status = "not_started";
+        console.log("venuename: ",req.body.venue);
         race.venue = req.body.venue;
         
         console.log("saved race ---: ", race);
@@ -214,7 +215,7 @@ function editRace(req, res, next) {
 router.post('/', Validate.admin, addRace);
 router.get('/', Validate.user, getRaces);
 router.get('/:name', Validate.user, getOneRace);
-router.post('/:name', Validate.admin, postSingleRaceRequest);
+router.post('/:name', Validate.admin, editRace);
 router.put('/:name', Validate.admin, editRace);
 router.delete('/:name', Validate.admin, deleteRace);
 
