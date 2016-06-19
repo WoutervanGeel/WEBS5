@@ -117,6 +117,27 @@ function Application(){
         }
     }
     
+    self.deleteRace = function(){
+        if(self.selectedEditRace == null){
+            alert("no race selected");
+        } else {
+            $.ajax({
+                url: '/races/'+self.selectedEditRace+'?format=json',
+                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                method: 'delete',
+                success: function successmethod(data) {
+                    console.log("deleted ",data);
+                    self.selectedEditRace = null;
+                    $('#editRaceName').val("");
+                    $('#editRaceCategory').val("");
+                    self.races = data.races;
+                    self.fillRaceList();
+                },
+                failure: function failuremethod(data) {console.log(data)},
+            });
+        }
+    }
+    
     self.editVenue = function(){
         var name = $('#editVenueName').val();
         var category = $('#editVenueCategory').val();
@@ -143,6 +164,27 @@ function Application(){
                 data: newVenue,
                 success: function successmethod(data) {
                     console.log("here",data);
+                    self.selectedEditVenue = null;
+                    $('#editVenueName').val("");
+                    $('#editVenueCategory').val("");
+                    self.venues = data.results;
+                    self.fillVenueList();
+                },
+                failure: function failuremethod(data) {console.log(data)},
+            });
+        }
+    }
+    
+    self.deleteVenue = function(){
+        if(self.selectedEditVenue == null){
+            alert("no venue selected");
+        } else {
+            $.ajax({
+                url: '/venues/'+self.selectedEditVenue+'?format=json',
+                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                method: 'delete',
+                success: function successmethod(data) {
+                    console.log("deleted ",data);
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
@@ -185,6 +227,16 @@ function Application(){
         $('#editVenueButton').on('click', function(e){
             e.preventDefault();
             self.editVenue();
+        });
+        
+        $('#deleteRaceButton').on('click', function(e){
+            e.preventDefault();
+            self.deleteRace();
+        });
+        
+        $('#deleteVenueButton').on('click', function(e){
+            e.preventDefault();
+            self.deleteVenue();
         });
         
         self.onclickRacesButtons();
@@ -243,5 +295,6 @@ function Application(){
         self.getVenues();
         self.connectButtons();
     }
+    
     $(document).ready(self.initApp);
 }
