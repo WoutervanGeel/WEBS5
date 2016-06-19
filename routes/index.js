@@ -10,8 +10,7 @@ router.get('/', function(req, res) {
   //res.render('index'); // load the index.ejs file
 });
 
-router.get('/admin', function(req, res){
-  //res.render('admin');
+router.get('/admin', /*Validate.admin,*/ function(req, res){
   var races;
   var venues;
   var results = 
