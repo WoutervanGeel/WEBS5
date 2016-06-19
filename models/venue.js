@@ -23,6 +23,18 @@ function init(mongoose)
         }
     });
     
+    venueSchema.statics.getBasicData = function () {
+        return {
+            _id: this._id,
+            name: this.name,
+            category: this.category
+        };
+    };
+    
+    venueSchema.statics.findByName = function (name, callback) {
+        return this.find({name: name}, callback);
+    };
+    
     mongoose.model('Venue', venueSchema);
 };
 

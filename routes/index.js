@@ -2,10 +2,56 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var http = require('http');
+var _ = require('underscore');
 var Validate = require('../config/validate');
 
 router.get('/', function(req, res) {
-  res.render('index'); // load the index.ejs file
+  res.render('index', { title: "Home" });
+  //res.render('index'); // load the index.ejs file
+});
+
+router.get('/admin', function(req, res){
+  //res.render('admin');
+  var races;
+  var venues;
+  var results = 
+  {
+    races: [],
+    venues: []
+  };
+  Race.find({}).sort({index:'ascending'}).exec(function(err, docs)
+    {            
+        _.every(docs, function(doc)
+        {
+          if(doc.venue !== null && doc.venue !== undefined){
+            results.races.push
+            ({
+                name: doc.name,
+                venue: doc.venue.name
+            });
+          } else {
+            results.races.push
+            ({
+                name: doc.name
+            });
+          }
+            return true;
+        });
+        Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
+        {            
+            _.every(docs, function(doc)
+            {
+                results.venues.push
+                ({
+                    name: doc.name,
+                    category: doc.category
+                });
+                return true;
+            });
+            console.log(results.races);
+            res.render('admin', { results: results });
+        });
+    });
 });
 
 router.get('/login', function(req, res) {
@@ -66,5 +112,10 @@ router.get('/logout', function(req, res) {
 });
 
 // app/routes.js
-module.exports = router;
-
+//module.exports = router;
+module.exports = function(mongoose)
+{
+	Race = mongoose.model('Race');
+  Venue = mongoose.model('Venue');
+	return router;
+};

@@ -1,0 +1,75 @@
+extends layout
+
+block content
+    .container
+        div.col-md-4
+          h1
+            span
+            |  Add Race
+
+          if (message)
+            .alert.alert-danger #{message}
+            
+          // Races CREATE FORM
+          form
+            .form-group
+              label Name
+              input#newRaceName.form-control(type='text', name='name')
+            button#addRaceButton.btn.btn-warning.btn-lg(type='submit') Create
+          hr
+          h1
+            span
+            |  Edit Race
+
+          div#editRaceList.list-group
+              each race, i in results.races
+                  a.list-group-item(href='#')= race.name
+                  
+          // Races EDIT FORM
+          form
+            .form-group
+              label Name
+              input#editRaceName.form-control(type='text', name='name')
+              .form-group
+                select#editRaceVenue.form-control
+                  option= null
+                  each venue, v in results.venues
+                    option= venue.name
+            button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
+            button#deleteRaceButton.btn.btn-danger.btn-lg(type='submit') Delete
+            hr
+        div.col-md-4
+          h1
+            span
+            |  Add Venue
+
+          if (message)
+            .alert.alert-danger #{message}
+            
+          // Venues CREATE FORM
+          form
+            .form-group
+              label Name
+              input#newVenueName.form-control(type='text', name='newVenueName')
+            .form-group
+              label Category
+              input#newVenueCategory.form-control(type='text', name='newVenueCategory')
+            button#addVenueButton.btn.btn-warning.btn-lg(type='submit') Create
+          hr
+          h1
+            span
+            |  Edit Venue
+
+          div#editVenueList.list-group
+              each venue, i in results.venues
+                  a.list-group-item(href='#')= venue.name
+                  
+          // Venues EDIT FORM
+          form
+            .form-group
+              label Name
+              input#editVenueName.form-control(type='text', name='name')
+              input#editVenueCategory.form-control(type='text', name='category')
+            button#editVenueButton.btn.btn-warning.btn-lg(type='submit') Edit
+            button#deleteVenueButton.btn.btn-danger.btn-lg(type='submit') Delete
+          hr
