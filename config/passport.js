@@ -63,7 +63,9 @@ module.exports = function(passport) {
                         // if there is no user with that email
                         // create the user
                         var newUser            = new User();
-
+                        
+                        console.log("latestId: "+User.getLatestId());
+                        newUser.id = newUser.latestId +1;
                         // set the user's local credentials
                         newUser.group = "user";
                         newUser.local.email    = email;
@@ -149,7 +151,7 @@ module.exports = function(passport) {
                         // if there is no user, create them
                         var newUser                 = new User();
                         newUser.group = "user";
-
+                        
                         // set all of the user data that we need
                         newUser.twitter.id          = profile.id;
                         newUser.twitter.token       = token;

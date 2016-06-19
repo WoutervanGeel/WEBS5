@@ -19,6 +19,13 @@ function init(mongoose)
             type: String,
             ref: "Venue",
             required: false
+        }, 
+        participants: {
+            type: [{
+                type: Number,
+                ref: "User",
+                required: [true, 'User Id is required.']
+            }]
         }
     });
     

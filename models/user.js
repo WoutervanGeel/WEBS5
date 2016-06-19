@@ -42,5 +42,16 @@ userSchema.methods.validPassword = function(password) {
     return bcrypt.compareSync(password, this.local.password);
 };
 
+userSchema.static.latestId = 0;
+
+userSchema.static.getLatestId = function () {
+    this.find({}, function(err, race){
+        console.log(race);
+    });
+    var id = userSchema.static.latestId;
+    userSchema.static.latestId = userSchema.static.latestId + 1;
+    return id;
+}
+
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema);
