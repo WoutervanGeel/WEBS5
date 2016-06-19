@@ -4,13 +4,14 @@ var TwitterStrategy  = require('passport-twitter').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 // load up the user model
-var User  = require('../models/user');
+// var User  = require('../models/user');
 
 // load the auth variables
 var configAuth = require('./auth');
 
 // expose this function to our app using module.exports
-module.exports = function(passport) {
+module.exports = function(passport, mongoose) {
+    User = mongoose.model('User');
 
     // =========================================================================
     // passport session setup ==================================================
@@ -64,8 +65,8 @@ module.exports = function(passport) {
                         // create the user
                         var newUser            = new User();
                         
-                        console.log("latestId: "+User.getLatestId());
-                        newUser.id = newUser.latestId +1;
+                        // console.log("latestId: "+User.getLatestId());
+                        // newUser.id = newUser.latestId +1;
                         // set the user's local credentials
                         newUser.group = "user";
                         newUser.local.email    = email;

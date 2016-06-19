@@ -9,6 +9,7 @@ var mongoose = require('mongoose');
 var passport = require('passport');
 var flash = require('connect-flash');
 var session = require('express-session');
+var bcrypt   = require('bcrypt-nodejs');
 
 const username = 'wouter';
 const password = 'admin';
@@ -24,15 +25,18 @@ mongoose.connect(url, function(err) {
     console.log('Connection to database established');
 });
 
-// /Data Access Layer
 
-require('./config/passport')(passport); // pass passport for configuration
 
 // Models
 //require('./models/pokemon')(mongoose);
+require('./models/user')(mongoose, bcrypt);
 require('./models/venue')(mongoose);
 require('./models/race')(mongoose);
 // /Models
+
+// /Data Access Layer
+
+require('./config/passport')(passport, mongoose); // pass passport for configuration
 
 // var dataMapper = require('./datamappers/pokemon')(mongoose, 'http://pokeapi.co/api/v2');
 // dataMapper.mapAllPokemon(function(error)
