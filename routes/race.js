@@ -11,11 +11,21 @@ var Race;
 
 function getRaces(req, res, next)
 {
-    Race.find({}).sort({index:'ascending'}).exec(function(err, races)
+    var query = {};
+
+    /* FILTERS */
+    if(req.query.name)
+        query.name = new RegExp(req.query.name, 'i');
+    if(req.query.status)
+        query.status = new RegExp(req.query.status, 'i');
+    if(req.query.venue)
+        query.venue = new RegExp(req.query.venue, 'i');
+
+    Race.find(query).sort({index:'ascending'}).exec(function(err, races)
     {
         var results =
         {
-            count: races.count,
+            count: races.length,
             races: []
         };
 
@@ -40,7 +50,7 @@ function getRaces(req, res, next)
         if(Response.requestJson(req)){
             res.json(results);
         } else {
-            res.render('races', { results: results.races });
+            res.render('races', results);
         }
     });
 }
