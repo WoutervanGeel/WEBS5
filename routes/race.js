@@ -11,12 +11,12 @@ var Race;
 
 function getRaces(req, res, next)
 {
-    Race.find({}).sort({index:'ascending'}).exec(function(err, docs)
+    Race.find({}).sort({index:'ascending'}).exec(function(err, races)
     {
         var results =
         {
-            count: docs.count,
-            results: []
+            count: races.count,
+            races: []
         };
 
         if(err)
@@ -25,11 +25,13 @@ function getRaces(req, res, next)
             return next();
         }
 
-        _.every(docs, function(doc)
+        _.every(races, function(race)
         {
-            results.results.push
+            results.races.push
             ({
-                name: doc.name
+                name: race.name,
+                status: race.status,
+                venue: race.venue
             });
             return true;
         });
@@ -38,16 +40,14 @@ function getRaces(req, res, next)
         if(Response.requestJson(req)){
             res.json(results);
         } else {
-            res.render('races', { results: results.results });
+            res.render('races', { results: results.races });
         }
-        
     });
 }
 
 // todo: fix venues!
 function getOneRace(req, res, next)
 {
-
     Race.findOne({ name: req.params.name }, function(err, doc)
     {
         if(doc == null)
@@ -62,16 +62,17 @@ function getOneRace(req, res, next)
             return next();
         }
 
-        var venues = [];
+        var venue = {};
 
         if(doc.get('venue') !== undefined){
-            venues = doc.get('venue');
+            venue = doc.get('venue');
         }
+
         var result =
         {
             name: doc.get('name'),
             status: doc.get('status'),
-            venues: venues
+            venue: venue
         };
 
         res.status(200);
@@ -79,12 +80,12 @@ function getOneRace(req, res, next)
             res.json(result);
         else
            res.render('singleRace', { response: result });
+
     });
 }
 
 function addRace(req, res, next)
 {
-
     if(req.body.name != null) {
 
         Race.find({}, function (err, races) {
@@ -104,6 +105,7 @@ function addRace(req, res, next)
                 var race = new Race();
                 race.name = req.body.name;
                 race.status = "not_started";
+                race.venue = req.body.venue; // todo: venues verplicht?
 
                 race.save(function (error, savedRace) {
 
@@ -126,7 +128,6 @@ function addRace(req, res, next)
                 });
 
             }
-
 
         });
     }
@@ -169,6 +170,7 @@ function editRace(req, res, next) {
 
                 race.name = req.body.name;
                 race.status = race.status;
+                race.venue = req.body.venue; // todo: venues verplicht?
                 race.save(function (err)
                 {
                     if(err) {
@@ -192,6 +194,7 @@ function editRace(req, res, next) {
 
 
             });
+
     }
     else
     {
