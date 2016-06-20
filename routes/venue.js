@@ -10,7 +10,7 @@ var DataMapper;
 
 /* REQUEST HANDLER FUNCTIONS */
 function getAll(req, res, next) {
-
+    console.log("SHOW: "+req.user);
     Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
         var results =

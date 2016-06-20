@@ -1,11 +1,6 @@
 var basicAuth = require('basic-auth');
 var passport = require('passport');
 
-const auth_user = "user";
-const auth_user_key = "user";
-const auth_admin = "admin";
-const auth_admin_key = "admin";
-
 function unauthorized(res) {
     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
     return res.send(401);
@@ -18,24 +13,22 @@ function forbidden(res) {
 
 module.exports = {
 
+    user: null,
+
     requireUser: function(req, res, next) {
 
         if (req.isAuthenticated()) {
             return next();
         }
 
-        var user = basicAuth(req);
+        var bUser = basicAuth(req);
 
-        if (!user || !user.name || !user.pass) {
+        if (!bUser || !bUser.name || !bUser.pass) {
             return unauthorized(res);
         };
 
-        if ((user.name === auth_user && user.pass === auth_user_key) ||
-            (user.name === auth_admin && user.pass === auth_admin_key)) {
-            return next();
-        } else {
-            return unauthorized(res);
-        };
+        passport.validateUser(bUser.name, bUser.pass, req, res, next);
+
     },
 
     requireAdmin: function(req, res, next) {
@@ -47,16 +40,12 @@ module.exports = {
                 forbidden(res);
         }
 
-        var user = basicAuth(req);
+        var bUser = basicAuth(req);
 
-        if (!user || !user.name || !user.pass) {
+        if (!bUser || !bUser.name || !bUser.pass) {
             return unauthorized(res);
         };
 
-        if (user.name === auth_admin && user.pass === auth_admin_key) {
-            return next();
-        } else {
-            return forbidden(res);
-        };
+        passport.validateUser(bUser.name, bUser.pass, req, res, next);
     }
 };
