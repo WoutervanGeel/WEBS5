@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
-var Authentication = require('../config/authentication');
 var Response = require('../config/responses');
+var passport = require('passport');
 
 var Race;
 
@@ -47,66 +47,37 @@ function getRaces(req, res, next)
 
 function getOneRace(req, res, next)
 {
-    var query =
+
+    Race.findOne({ name: req.params.name }, function(err, doc)
     {
-        name: req.params.name
-    }
-
-    Venue.find({}, function(err, venues) {
-        var venuelist = [];
-
-        _.every(venues, function(tempvenue)
-            {
-                venuelist.push({
-                    venue: tempvenue,
-                    checked: false
-                });
-                return true;
-            });
-
-        Race.findOne(query, function(err, race)
+        if(doc == null)
         {
-            if(race == null)
-            {
-                return next();
-            }
-            if(err)
-            {
-                err = new Error();
-                err.status = 500;
-                err.message = 'Internal Server Error';
-                return next(err);
-            }
+            Response.setNotFound(req,res);
+            return next();
+        }
 
-            var racevenue = {};
-            if(typeof race.get('venue') !== undefined){
-                racevenue = race.get('venue');
-            }
+        if(err)
+        {
+            Response.setServerError(req,res);
+            return next();
+        }
 
-            res.status(200);
-            if(Response.requestJson(req)){
-                var response =
-                {
-                    name: race.get('name'),
-                    status: race.get('status'),
-                    venue: racevenue
-                };
+        var venues = [];
+        if(typeof doc.get('venue') !== undefined){
+            venues = doc.get('venue');
+        }
+        var result =
+        {
+            name: doc.get('name'),
+            status: doc.get('status'),
+            venues: venues
+        };
 
-                res.json(response);
-            } else {
-                var response =
-                {
-                    venues: venuelist,
-                    race: {
-                        name: race.get('name'),
-                        status: race.get('status'),
-                        venue: racevenue
-                    }
-                };
-
-                res.render('singleRace', { response: response });
-            }
-        });
+        res.status(200);
+        if(Response.requestJson(req))
+            res.json(result);
+        else
+           res.render('singleRace', { response: result });
     });
 };
 
@@ -213,11 +184,11 @@ function editRace(req, res, next) {
 
 /* ROUTING */
 
-router.get('/', Authentication.requireUser, getRaces);
-router.get('/:name', Authentication.requireUser, getOneRace); // todo
-router.post('/', Authentication.requireAdmin, addRace); // todo
-router.put('/:name', Authentication.requireAdmin, editRace); // todo
-router.delete('/:name', Authentication.requireAdmin, deleteRace);
+router.get('/', passport.authenticate('user', { "session": false }), getRaces);
+router.get('/:name', passport.authenticate('user', { "session": false }), getOneRace); // todo
+router.post('/', passport.authenticate('admin', { "session": false }), addRace); // todo
+router.put('/:name', passport.authenticate('admin', { "session": false }), editRace); // todo
+router.delete('/:name', passport.authenticate('admin', { "session": false }), deleteRace);
 
 /* EXPORT FUNCTION */
 

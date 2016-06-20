@@ -2,6 +2,10 @@
 var LocalStrategy = require('passport-local').Strategy;
 var TwitterStrategy  = require('passport-twitter').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var CustomStrategy = require('passport-custom');
+
+// basic auth.
+var basicAuth = require('basic-auth');
 
 // load up the user model
 var User  = require('../models/user');
@@ -22,6 +26,82 @@ function forbidden(res) {
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
+
+    /* CUSTOM LOGIN METHOD */
+
+    passport.use('user', new CustomStrategy(function(req, done) {
+
+            if (req.isAuthenticated()) {
+                return done(null, req.user);
+            }
+
+            var bAuth = basicAuth(req);
+
+            if (!bAuth || !bAuth.name || !bAuth.pass) {
+                return done(null, false);
+            };
+
+            // Do your custom user finding logic here, or set to false based on req object
+            User.findOne({ 'local.email' :  bAuth.name }, function(err, user) {
+                // if there are any errors, return the error before anything else
+                if (err)
+                    return done(null, false);
+
+                // if no user is found, return the message
+                if (!user)
+                    return done(null, false);
+
+                // if the user is found but the password is wrong
+                if (!user.validPassword(bAuth.pass))
+                    return done(null, false);
+
+                // all is well, return successful user
+                req.logIn(user , { session: false }, function () {
+                    return done(null, user);
+                });
+            });
+        }
+    ));
+
+    passport.use('admin', new CustomStrategy(function(req, done) {
+
+        if (req.isAuthenticated()) {
+            return done(null, req.user);
+        }
+
+        var bAuth = basicAuth(req);
+
+        if (!bAuth || !bAuth.name || !bAuth.pass) {
+            return done(null, false);
+        };
+
+        // Do your custom user finding logic here, or set to false based on req object
+        User.findOne({ 'local.email' :  bAuth.name }, function(err, user) {
+            // if there are any errors, return the error before anything else
+            if (err)
+                return done(null, false);
+
+            // if no user is found, return the message
+            if (!user)
+                return done(null, false);
+
+            // if the user is found but the password is wrong
+            if (!user.validPassword(bAuth.pass))
+                return done(null, false);
+
+
+            if(user.isAdmin()) {
+                // all is well, return successful user
+                req.logIn(user, {session: false}, function () {
+                    return done(null, user);
+                });
+            }
+            else {
+                return done(null, false);
+            }
+        });
+        }
+    ));
 
     // =========================================================================
     // passport session setup ==================================================

@@ -3,11 +3,9 @@ var router = express.Router();
 var passport = require('passport');
 var http = require('http');
 var _ = require('underscore');
-var Authentication = require('../config/authentication');
 
 router.get('/', function(req, res) {
   res.render('index', { title: "Home" });
-  //res.render('index'); // load the index.ejs file
 });
 
 router.get('/admin', function(req, res){
@@ -74,7 +72,7 @@ router.post('/signup', passport.authenticate('local-signup', {
   failureFlash : true // allow flash messages
 }));
 
-router.get('/profile', Authentication.requireUser, function(req, res) {
+router.get('/profile', passport.authenticate('user', { "session": false }), function(req, res) {
   res.render('profile', {
     user : req.user // get the user out of session and pass to template
   });

@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
-var Authentication = require('../config/authentication');
 var Response = require('../config/responses');
+var passport = require('passport');
 
 var Venue;
 var DataMapper;
@@ -184,11 +184,11 @@ function editVenue(req, res, next) {
 }
 
 /* ROUTING */
-router.get('/', Authentication.requireUser, getAll);
-router.get('/:name', Authentication.requireUser, getVenue);
-router.post('/', Authentication.requireAdmin, addVenue);
-router.put('/:name', Authentication.requireAdmin, editVenue);
-router.delete('/:name', Authentication.requireAdmin, deleteVenue);
+router.get('/', passport.authenticate('user', { "session": false }), getAll);
+router.get('/:name', passport.authenticate('user', { "session": false }), getVenue);
+router.post('/', passport.authenticate('admin', { "session": false }), addVenue);
+router.put('/:name', passport.authenticate('admin', { "session": false }), editVenue);
+router.delete('/:name', passport.authenticate('admin', { "session": false }), deleteVenue);
 
 /* EXPORT FUNCTION */
 module.exports = function(mongoose, mapper)
