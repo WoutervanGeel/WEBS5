@@ -11,7 +11,6 @@ var Race;
 
 function getRaces(req, res, next)
 {
-
     Race.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
         var results =
@@ -43,8 +42,9 @@ function getRaces(req, res, next)
         }
         
     });
-};
+}
 
+// todo: fix venues!
 function getOneRace(req, res, next)
 {
 
@@ -63,7 +63,8 @@ function getOneRace(req, res, next)
         }
 
         var venues = [];
-        if(typeof doc.get('venue') !== undefined){
+
+        if(doc.get('venue') !== undefined){
             venues = doc.get('venue');
         }
         var result =
@@ -79,42 +80,61 @@ function getOneRace(req, res, next)
         else
            res.render('singleRace', { response: result });
     });
-};
+}
 
 function addRace(req, res, next)
 {
 
-    Race.find({}, function(err, races) {
-    var racelist = [];
+    if(req.body.name != null) {
 
-    _.every(races, function(race)
-        {
-            racelist.push(race);
-            return true;
+        Race.find({}, function (err, races) {
+            var racelist = [];
+
+            if(err) {
+                Response.setServerError(req,res);
+                return next();
+            }
+
+            _.every(races, function (race) {
+                racelist.push(race);
+                return true;
+            });
+
+            if (racelist.length < 5) {
+                var race = new Race();
+                race.name = req.body.name;
+                race.status = "not_started";
+
+                race.save(function (error, savedRace) {
+
+                    if(error) {
+                        Response.setServerError(req,res);
+                        return next();
+                    }
+
+                    var result =
+                    {
+                        name: savedRace.name,
+                        status: savedRace.status
+                    };
+
+                    res.status(200);
+                    if(Response.requestJson(req))
+                        res.json(result);
+                    else
+                        res.render("singleRace", { response: result });
+                });
+
+            }
+
+
         });
-
-    if(racelist.length < 5){
-        //var venue = {};
-        var race = new Race();
-        race.name = req.body.name;   
-        race.status = "not_started";
-        //race.venue = venue;
-        race.save(function(error, savedRace)
-        {
-            if(error) console.log(error);
-        });
- 
     }
-    res.status(200);
-    if(Response.requestJson(req)){
-        res.redirect("races");
-    } else {
-        res.redirect("races?format=html");
+    else
+    {
+        Response.setMissingFields(req,res);
     }
-    
-
-  });
-};
+}
 
 function deleteRace(req, res, next)
 {
@@ -132,62 +152,61 @@ function deleteRace(req, res, next)
 
 function editRace(req, res, next) {
 
-    if( typeof req.body.venue == 'object'){
-        var query = 
-        {
-            name: req.body.venue.name
-        }
-    } else {
-        var query = 
-        {
-            name: req.body.venue
-            //name: "Yusuffa"
-        }
-    }
+    if(req.body.name != null) {
 
-    //
-    Venue.findOne(query, function(err, selectedVenue)
-    {
-        // var response =
-        // {
-        //     name: selectedVenue.get('name'),
-        //     category: selectedVenue.get('category')
-        // };
+            Race.findOne({ name: req.params.name }, function (err, race){
 
-        var query = { name: req.params.name , status: req.body.racestatus};
-        var racestatus = req.body.racestatus;
-        
-        //var options = { multi: false };
-        Race.findOne({ name: req.params.name }, function (err, race){
-            race.name = req.body.name;
-            race.status = "not_started";
-            if(typeof selectedVenue !== undefined){
-                race.venue = selectedVenue;
-            }
-            //doc.visits.$inc();
-            race.save(function (err)
-            {
-                console.log('save err', err);
+                if(race == null)
+                {
+                    Response.setNotFound(req,res);
+                    return next();
+                }
+
+                if(err) {
+                    Response.setServerError(req, res);
+                    return next();
+                }
+
+                race.name = req.body.name;
+                race.status = race.status;
+                race.save(function (err)
+                {
+                    if(err) {
+                        Response.setServerError(req, res);
+                        return next();
+                    }
+                    else {
+                        var result =
+                        {
+                            name: race.name,
+                            status: race.status
+                        };
+
+                        res.status(200);
+                        if(Response.requestJson(req))
+                            res.json(result);
+                        else
+                            res.render("singleVenue", { response: result });
+                    }
+                });
+
+
             });
-        });
-    });
-    //
-
-    res.status(200);
-    if(Response.requestJson(req)){
-        res.send({redirect: '/races'});
-    } else {
-        res.redirect("/races?format=html");
     }
+    else
+    {
+        Response.setMissingFields(req,res);
+    }
+
 };
 
 
 /* ROUTING */
 
 router.get('/', passport.authenticate('user', { "session": false }), getRaces);
-router.get('/:name', passport.authenticate('user', { "session": false }), getOneRace); // todo
-router.post('/', passport.authenticate('admin', { "session": false }), addRace); // todo
-router.put('/:name', passport.authenticate('admin', { "session": false }), editRace); // todo
+router.get('/:name', passport.authenticate('user', { "session": false }), getOneRace);
+router.post('/', passport.authenticate('admin', { "session": false }), addRace);
+router.put('/:name', passport.authenticate('admin', { "session": false }), editRace);
 router.delete('/:name', passport.authenticate('admin', { "session": false }), deleteRace);
 
 /* EXPORT FUNCTION */
