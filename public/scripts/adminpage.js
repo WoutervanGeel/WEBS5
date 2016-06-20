@@ -8,12 +8,23 @@ function Application(){
     self.selectedEditRace = null;
     self.selectedEditVenue = null;
     self.selectedEditRaceParticipants = [];
-    self.userId = '5766047fb52c616831090325';
+    self.userdata = {
+        headerkey: "Authorization",
+        admin: "Basic YWRtaW5AYWNjb3VudC5ubDphZG1pbg==",
+        user: "Basic dXNlckBhY2NvdW50Lm5sOnVzZXI="
+    }
+    self.datatype = {
+        headerkey: "Content-Type",
+        value: "application/json"
+    }
     
     self.getRaces = function(){
         $.ajax({
-            url: '/races?format=json',
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            url: '/races',
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+            },
             method: 'get',
             success: function successmethod(data) {
                 self.races = data.races;
@@ -24,8 +35,11 @@ function Application(){
     
     self.getVenues = function(){
         $.ajax({
-            url: '/venues?format=json',
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            url: '/venues',
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+            },
             method: 'get',
             success: function successmethod(data) {
                 self.venues = data.results;
@@ -48,13 +62,14 @@ function Application(){
             };
             
             $.ajax({
-                url: '/venues?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/venues',
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'post',
                 data: venue,
-                success: function successmethod(data) {
-                    $('#newRaceName').val("");
-                    console.log(data)},
+                success: function successmethod(data) {$('#newRaceName').val("");},
                 failure: function failuremethod(data) {console.log(data)},
             });
         }
@@ -70,13 +85,15 @@ function Application(){
             };
             
             $.ajax({
-                url: '/races?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/races',
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'post',
                 data: race,
                 success: function successmethod(data) {
                     $('#newRaceName').val("");
-                    console.log(data)
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -103,8 +120,11 @@ function Application(){
             }
             
             $.ajax({
-                url: '/races/'+self.selectedEditRace+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/races/'+self.selectedEditRace,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'post',
                 data: newRace,
                 success: function successmethod(data) {
@@ -124,8 +144,11 @@ function Application(){
             alert("no race selected");
         } else {
             $.ajax({
-                url: '/races/'+self.selectedEditRace+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/races/'+self.selectedEditRace,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'delete',
                 success: function successmethod(data) {
                     console.log("deleted ",data);
@@ -160,8 +183,11 @@ function Application(){
             console.log(newVenue);
             
             $.ajax({
-                url: '/venues/'+self.selectedEditVenue+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/venues/'+self.selectedEditVenue,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'put',
                 data: newVenue,
                 success: function successmethod(data) {
@@ -169,7 +195,7 @@ function Application(){
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
-                    self.venues = data.results;
+                    self.getVenues();
                     self.fillVenueList();
                 },
                 failure: function failuremethod(data) {console.log(data)},
@@ -182,15 +208,18 @@ function Application(){
             alert("no venue selected");
         } else {
             $.ajax({
-                url: '/venues/'+self.selectedEditVenue+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                url: '/venues/'+self.selectedEditVenue,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'delete',
                 success: function successmethod(data) {
                     console.log("deleted ",data);
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
-                    self.venues = data.results;
+                    self.getVenues();
                     self.fillVenueList();
                 },
                 failure: function failuremethod(data) {console.log(data)},
@@ -209,7 +238,10 @@ function Application(){
             
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'/participants',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'post',
                 data: sendData,
                 success: function successmethod(data) {
@@ -228,7 +260,10 @@ function Application(){
         } else {  
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'/participants/'+self.userId,
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+                },
                 method: 'delete',
                 success: function successmethod(data) {
                     alert("Left race: " + self.selectedEditRace+".");
@@ -243,7 +278,10 @@ function Application(){
     self.getParticipants = function(){
         $.ajax({
             url: '/races/'+self.selectedEditRace,
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
+            },
             method: 'get',
             success: function successmethod(data) {
                 self.selectedEditRaceParticipants = data.participants;
@@ -279,7 +317,6 @@ function Application(){
             self.selectedEditRace = name;
             $('#editRaceName').val(name);
             $('#editRaceVenue').val(venue);
-            //document.getElementById("editRace").value = this.innerHTML
         });
     }
     
