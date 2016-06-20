@@ -2,16 +2,107 @@
 var LocalStrategy = require('passport-local').Strategy;
 var TwitterStrategy  = require('passport-twitter').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var CustomStrategy = require('passport-custom');
+
+// basic auth.
+var basicAuth = require('basic-auth');
 
 // load up the user model
 // var User  = require('../models/user');
 
 // load the auth variables
-var configAuth = require('./auth');
+var configAuth = require('./settings');
+
+
+function unauthorized(res) {
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    return res.send(401);
+};
+
+function forbidden(res) {
+    res.set('WWW-Authenticate', 'Basic realm=Forbidden Access');
+    return res.send(403);
+};
 
 // expose this function to our app using module.exports
 module.exports = function(passport, mongoose) {
     User = mongoose.model('User');
+
+    /* CUSTOM LOGIN METHOD */
+
+    passport.use('user', new CustomStrategy(function(req, done) {
+
+            if (req.isAuthenticated()) {
+                return done(null, req.user);
+            }
+
+            var bAuth = basicAuth(req);
+
+            if (!bAuth || !bAuth.name || !bAuth.pass) {
+                return done(null, false);
+            };
+
+            // Do your custom user finding logic here, or set to false based on req object
+            User.findOne({ 'local.email' :  bAuth.name }, function(err, user) {
+                // if there are any errors, return the error before anything else
+                if (err)
+                    return done(null, false);
+
+                // if no user is found, return the message
+                if (!user)
+                    return done(null, false);
+
+                // if the user is found but the password is wrong
+                if (!user.validPassword(bAuth.pass))
+                    return done(null, false);
+
+                // all is well, return successful user
+                req.logIn(user , { session: false }, function () {
+                    return done(null, user);
+                });
+            });
+        }
+    ));
+
+    passport.use('admin', new CustomStrategy(function(req, done) {
+
+        if (req.isAuthenticated()) {
+            return done(null, req.user);
+        }
+
+        var bAuth = basicAuth(req);
+
+        if (!bAuth || !bAuth.name || !bAuth.pass) {
+            return done(null, false);
+        };
+
+        // Do your custom user finding logic here, or set to false based on req object
+        User.findOne({ 'local.email' :  bAuth.name }, function(err, user) {
+            // if there are any errors, return the error before anything else
+            if (err)
+                return done(null, false);
+
+            // if no user is found, return the message
+            if (!user)
+                return done(null, false);
+
+            // if the user is found but the password is wrong
+            if (!user.validPassword(bAuth.pass))
+                return done(null, false);
+
+
+            if(user.isAdmin()) {
+                // all is well, return successful user
+                req.logIn(user, {session: false}, function () {
+                    return done(null, user);
+                });
+            }
+            else {
+                return done(null, false);
+            }
+        });
+        }
+    ));
 
     // =========================================================================
     // passport session setup ==================================================
@@ -20,13 +111,13 @@ module.exports = function(passport, mongoose) {
     // passport needs ability to serialize and unserialize users out of session
 
     // used to serialize the user for the session
-    passport.serializeUser(function(user, done) {
+    passport.serializeUser(function (user, done) {
         done(null, user.id);
     });
 
     // used to deserialize the user
-    passport.deserializeUser(function(id, done) {
-        User.findById(id, function(err, user) {
+    passport.deserializeUser(function (id, done) {
+        User.findById(id, function (err, user) {
             done(err, user);
         });
     });
@@ -39,19 +130,19 @@ module.exports = function(passport, mongoose) {
 
     passport.use('local-signup', new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
-            usernameField : 'email',
-            passwordField : 'password',
-            passReqToCallback : true // allows us to pass back the entire request to the callback
+            usernameField: 'email',
+            passwordField: 'password',
+            passReqToCallback: true // allows us to pass back the entire request to the callback
         },
-        function(req, email, password, done) {
+        function (req, email, password, done) {
 
             // asynchronous
             // User.findOne wont fire unless data is sent back
-            process.nextTick(function() {
+            process.nextTick(function () {
 
                 // find a user whose email is the same as the forms email
                 // we are checking to see if the user trying to login already exists
-                User.findOne({ 'local.email' :  email }, function(err, user) {
+                User.findOne({'local.email': email}, function (err, user) {
                     // if there are any errors, return the error
                     if (err)
                         return done(err);
@@ -63,21 +154,23 @@ module.exports = function(passport, mongoose) {
 
                         // if there is no user with that email
                         // create the user
-                        var newUser            = new User();
-                        
-                        // console.log("latestId: "+User.getLatestId());
-                        // newUser.id = newUser.latestId +1;
+                        var newUser = new User();
+
                         // set the user's local credentials
-                        newUser.group = "user";
-                        newUser.local.email    = email;
                         newUser.name = email;
+                        newUser.group = "user";
+                        newUser.local.email = email;
                         newUser.local.password = newUser.generateHash(password);
 
                         // save the user
-                        newUser.save(function(err) {
+                        newUser.save(function (err) {
                             if (err)
                                 throw err;
-                            return done(null, newUser);
+
+                            req.login(newUser, function () {
+                                return done(null, newUser);
+                            });
+
                         });
                     }
 
@@ -95,15 +188,15 @@ module.exports = function(passport, mongoose) {
 
     passport.use('local-login', new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
-            usernameField : 'email',
-            passwordField : 'password',
-            passReqToCallback : true // allows us to pass back the entire request to the callback
+            usernameField: 'email',
+            passwordField: 'password',
+            passReqToCallback: true // allows us to pass back the entire request to the callback
         },
-        function(req, email, password, done) { // callback with email and password from our form
+        function (req, email, password, done) { // callback with email and password from our form
 
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
-            User.findOne({ 'local.email' :  email }, function(err, user) {
+            User.findOne({'local.email': email}, function (err, user) {
                 // if there are any errors, return the error before anything else
                 if (err)
                     return done(err);
@@ -117,10 +210,63 @@ module.exports = function(passport, mongoose) {
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.')); // create the loginMessage and save it to session as flashdata
 
                 // all is well, return successful user
-                return done(null, user);
+                req.login(user, function () {
+                    return done(null, user);
+                });
             });
 
         }));
+
+
+    passport.validateUser = function (username, password, req, res, next) {
+
+         User.findOne({ 'local.email' :  username.valueOf() }, function(err, user) {
+             // if there are any errors, return the error before anything else
+             if (err)
+                 return unauthorized(res);
+
+             // if no user is found, return the message
+             if (!user)
+                 return unauthorized(res);
+
+             // if the user is found but the password is wrong
+             if (!user.validPassword(password.valueOf()))
+                 return unauthorized(res);
+
+             // all is well, return successful user
+             req.login(user, function () {
+                 return next();
+             });
+         });
+    };
+
+    passport.validateAdmin = function (username, password, req, res, next) {
+
+        User.findOne({ 'local.email' :  username.valueOf() }, function(err, user) {
+            // if there are any errors, return the error before anything else
+            if (err)
+                return unauthorized(res);
+
+            // if no user is found, return the message
+            if (!user)
+                return unauthorized(res);
+
+            // if the user is found but the password is wrong
+            if (!user.validPassword(password.valueOf()))
+                return unauthorized(res);
+
+            // all is well, return successful user
+            if(user.isAdmin()) {
+                req.login(user, function () {
+                    return next();
+                });
+            }
+            else {
+                return forbidden(res);;
+            }
+        });
+    };
+
 
 
     // =========================================================================

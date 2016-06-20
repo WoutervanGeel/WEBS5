@@ -1,36 +1,17 @@
 extends layout
 
 block content
-    a(href='/races?format=html').
+    a(href='/races').
         go to races
-    h1= response.race.name
-    
-    h3.
-        Edit Race
-    form#formAddRace(name="editrace",method="post",action="")
-        input#inputRaceName(type="text", value=response.race.name, name="name")
-        input#inputMethod(type="hidden", value="put", name="_method")
-
-        p Select Venue for Race 
-        h4.
-            Selected Venue
-        if response.race.venue
-            p=response.race.venue.name
-        else
-            p No selected venue!
-        p
-            select(name = "venue")
-                each venue, i in response.venues
-                    option(value=venue.venue.name)= venue.venue.name
-        br
-        button#btnSubmit(type="submit") Wijzigen
-        ////////////////////////////////////////////////////////////////////////
-        
-        
-    h3.
-        Delete Race
-    form#formDeleteRace(name="deleterace",method="post", action="")
-        input#inputMethod(type="hidden", value="delete", name="_method")
-        button#btnSubmit(type="submit") Verwijderen
-    
-    
+    h1.
+        #{response.name}
+    table.table.table-bordered
+        tr
+            th= "Name"
+            td= response.name
+        tr
+            th= "Status"
+            td= response.status
+        tr
+            th= "Venues"
+            td= response.venue

@@ -30,21 +30,24 @@ function init(mongoose)
     });
     
     raceSchema.statics.findByName = function (name, callback) {
-        return this.find({name: name}, function(err, race){
-            tempRace = race[0];
-            Venue.findByName(tempRace.venue, function(err, resultVenue){
-                var resultRace = 
-                {
-                    name: tempRace.name,
-                    participants: [],
-                    status: tempRace.status,
-                    venue: resultVenue[0]
-                }
-                _getParticipantsFromCollection(tempRace.participants, function(err, list){
-                    resultRace.participants = list;
-                    callback(err, resultRace);
+        return this.findOne({name: name}, function(err, race){
+            if(race == null){
+                callback(err, race);
+            } else {
+                Venue.findByName(race.venue, function(err, resultVenue){
+                    var resultRace = 
+                    {
+                        name: race.name,
+                        participants: [],
+                        status: race.status,
+                        venue: resultVenue[0]
+                    }
+                    _getParticipantsFromCollection(race.participants, function(err, list){
+                        resultRace.participants = list;
+                        callback(err, resultRace);
+                    });
                 });
-            });
+            }
         });
     };
     

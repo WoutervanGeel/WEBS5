@@ -48,6 +48,10 @@ function init(mongoose, bcrypt)
         });
     };
     
+    userSchema.methods.isAdmin = function() {
+        return this.group == "admin";
+    };
+    
     mongoose.model('User', userSchema);
 };
 
