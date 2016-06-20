@@ -70,6 +70,7 @@ module.exports = function(passport, mongoose) {
                         // set the user's local credentials
                         newUser.group = "user";
                         newUser.local.email    = email;
+                        newUser.name = email;
                         newUser.local.password = newUser.generateHash(password);
 
                         // save the user
@@ -152,6 +153,7 @@ module.exports = function(passport, mongoose) {
                         // if there is no user, create them
                         var newUser                 = new User();
                         newUser.group = "user";
+                        newUser.name = profile.username;
                         
                         // set all of the user data that we need
                         newUser.twitter.id          = profile.id;
@@ -201,6 +203,7 @@ module.exports = function(passport, mongoose) {
                         // if the user isnt in our database, create a new user
                         var newUser          = new User();
                         newUser.group = "user";
+                        newUser.name = profile.displayName;
                         
                         // set all of the relevant information
                         newUser.google.id    = profile.id;

@@ -21,9 +21,13 @@ block content
             span
             |  Edit Race
 
+          label Races
           div#editRaceList.list-group
               each race, i in results.races
                   a.list-group-item(href='#')= race.name
+                  
+          label Joined Participants
+          div#raceParticipantList.list-group
                   
           // Races EDIT FORM
           form
@@ -37,6 +41,8 @@ block content
                     option= venue.name
             button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
             button#deleteRaceButton.btn.btn-danger.btn-lg(type='submit') Delete
+            button#joinRaceButton.btn.btn-primary.btn-lg(tpe='submit') Join
+            button#leaveRaceButton.btn.btn-danger.btn-lg(type='submit') Leave
             hr
         div.col-md-4
           h1

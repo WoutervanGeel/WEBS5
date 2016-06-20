@@ -5,7 +5,7 @@ function init(mongoose, bcrypt)
     var Schema = mongoose.Schema;
     var userSchema = new Schema
     ({
-        
+        name: String,
         group: String,
             local: {
                 email: String,
@@ -41,18 +41,12 @@ function init(mongoose, bcrypt)
     userSchema.methods.validPassword = function(password) {
         return bcrypt.compareSync(password, this.local.password);
     };
-
-    userSchema.statics.getLatestId = function () {
-        latestId = 0;
-        this.find({}, function(err, race){
-            console.log(race.id);
-            if(latestId < race.id){
-                latestId = race.id
-            }
+    
+    userSchema.statics.getName = function (id, callback) {
+        return this.find({_id:id}, function(err, user){
+            callback(err, user[0].name);
         });
-        //userSchema.static.latestId = userSchema.static.latestId + 1;
-        return latestId;
-    }
+    };
     
     mongoose.model('User', userSchema);
 };

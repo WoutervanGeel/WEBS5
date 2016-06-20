@@ -74,35 +74,34 @@ function getOneRace(req, res, next)
                 return true;
             });
 
-        Race.findByName(name, function(err, race)
-        // Race.findOne(query, function(err, race)
-        {
-            if(race == null)
+            Race.findByName(name, function(err, race)
+            // Race.findOne(query, function(err, race)
             {
-                return next();
-            }
-            if(err)
-            { 
-                err = new Error();
-                err.status = 500;
-                err.message = 'Internal Server Error';
-                return next(err);
-            }
-
-            res.status(200);
-            if(requestIsJSON){
-                var response = race;
-                res.json(response);
-            } else {
-                var response =
+                if(race == null)
                 {
-                    venues: venuelist,
-                    race: race
-                };
-                console.log(response.race);
-                res.render('singleRace', { response: response });
-            }
-        });
+                    return next();
+                }
+                if(err)
+                { 
+                    err = new Error();
+                    err.status = 500;
+                    err.message = 'Internal Server Error';
+                    return next(err);
+                }
+
+                res.status(200);
+                if(requestIsJSON){
+                    var response = race;
+                    res.json(response);
+                } else {
+                    var response =
+                    {
+                        venues: venuelist,
+                        race: race
+                    };
+                    res.render('singleRace', { response: response });
+                }
+            });
     });
 };
 
@@ -207,7 +206,116 @@ function editRace(req, res, next) {
     } else {
         res.redirect("/races?format=html");
     }
-};
+}
+
+function getParticipants(req, res, next) {
+    var filter = {};
+    var participants = [];
+    var name = req.params.name;
+    Race.getParticipants(name, function(err, data){
+        console.log("fetched participants");
+        participants = data.participants;
+    
+        res.json({
+            filter: filter,
+            data: participants
+        });
+    });
+}
+
+function removeParticipant(req, res, next) {
+    var filter = {};
+    var participantId = req.params.userId;
+    var raceName = req.params.name;
+    
+    Race.find({name: raceName}, function(err, race) {
+        if(race == null)
+        {
+            return next();
+        }
+        if(err)
+        { 
+            err = new Error();
+            err.status = 500;
+            err.message = 'Internal Server Error';
+            return next(err);
+        }
+        
+        if(_.contains(race[0].participants, participantId)){
+            newParticipantList = _.without(race[0].participants, participantId);
+            console.log(newParticipantList);
+            race[0].participants = newParticipantList;
+            race[0].save(function(error, savedRace) {
+                if(error){
+                    res.status(400);
+                    res.json(error);
+                } else {
+                    res.status(200);
+                    res.json(savedRace);
+                }
+            });
+        } else {
+            res.status(400);
+            res.json('User is not participating in this race.');
+        }
+    });
+}
+
+function getParticipant(req, res, next) {
+    var filter = {};
+    var name = req.params.name;
+    var participantId = req.params.userId;
+    Race.find({name: name}, function(err, data){
+        if(_.contains(data[0].participants, participantId)){
+            participant = _.where(data[0].participants, participantId)[0];
+            res.status(200);
+            res.json({
+                filter: filter,
+                data: participant
+            });
+        } else {
+            res.status(400);
+            res.json('User is not participating in this race.');
+        }
+    });
+}
+
+function addParticipant(req, res, next) {
+    var filter = {};
+    var newParticipantId = req.body.userId;
+    var raceName = req.params.name;
+    
+    Race.find({name: raceName}, function(err, race) {
+        if(race[0] == null)
+        {
+            return next();
+        }
+        if(err)
+        { 
+            err = new Error();
+            err.status = 500;
+            err.message = 'Internal Server Error';
+            return next(err);
+        }
+        
+        if(_.contains(race[0].participants, newParticipantId)){
+            res.status(400);
+            res.json('User is already participating in this race.');
+            return next(err);
+        }
+
+        race[0].participants.push(newParticipantId);
+        race[0].save(function(error, savedRace) {
+            if(error){
+                res.status(400);
+                res.json(error);
+            } else {
+                res.status(200);
+                res.json(savedRace);
+            }
+        });
+    });
+}
 
 
 /* ROUTING */
@@ -218,6 +326,10 @@ router.get('/:name', Validate.user, getOneRace);
 router.post('/:name', Validate.admin, editRace);
 router.put('/:name', Validate.admin, editRace);
 router.delete('/:name', Validate.admin, deleteRace);
+router.get('/:name/participants', getParticipants);
+router.post('/:name/participants', addParticipant);
+router.get('/:name/participants/:userId', getParticipant);
+router.delete('/:name/participants/:userId', removeParticipant);
 
 /* URL VALIDATION */
 
