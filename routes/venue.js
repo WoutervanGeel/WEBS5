@@ -11,11 +11,36 @@ var DataMapper;
 /* REQUEST HANDLER FUNCTIONS */
 function getAll(req, res, next) {
 
-    Venue.find({}).sort({index:'ascending'}).exec(function(err, docs)
+    var limit = 10;
+    var page = 0;
+    var query = {};
+
+    /* FILTERS */
+    if(req.query.name)
+        query.name = new RegExp(req.query.name, 'i');
+    if(req.query.category)
+        query.category = new RegExp(req.query.category, 'i');
+
+    if(req.query.page)
+    {
+        var q_page = parseInt(req.query.page);
+        if(q_page > 0)
+            page = q_page;
+    }
+    if(req.query.limit)
+    {
+        var q_limit = parseInt(req.query.limit);
+        if(q_limit > 0)
+            limit = q_limit;
+    }
+
+    Venue.find(query).limit(limit).skip(limit * page).sort({index:'ascending'}).exec(function(err, docs)
     {
         var results =
         {
-            count: docs.count,
+            limit: limit,
+            page: page,
+            count: docs.length,
             results: []
         };
 
@@ -39,7 +64,7 @@ function getAll(req, res, next) {
         if(Response.requestJson(req)){
             res.json(results);
         } else {
-            res.render('venues', { results: results.results });
+            res.render('venues', results);
         }
     });
 }
