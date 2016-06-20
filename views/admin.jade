@@ -2,41 +2,6 @@ extends layout
 
 block content
     .container
-        div.panel.panel-warning
-          div.panel-heading
-            h3 Login
-          div.panel-body
-            p You need to be logged in, in order to edit, create or add data.
-            hr
-            // Races EDIT FORM
-            form
-              .form-group
-                label Email
-                input#loginEmail.form-control(type='text', name='email')
-                label Password
-                input#loginPassword.form-control(type='password', name='password')
-                button#loginButton.btn.btn-primary.btn-lg(type='submit') Login
-
-            // p Login or Register with:
-            // a.btn.btn-default(href='/login')
-            //   span.fa.fa-user
-            //   |  Local Login
-
-            // a.btn.btn-default(href='/signup')
-            //   span.fa.fa-user
-            //   |  Local Signup
-
-            // a.btn.btn-primary(href='/auth/twitter')
-            //   span.fa.fa-twitter
-            //   |  Twitter
-
-            // a.btn.btn-danger(href='/auth/google')
-            //   span.fa.fa-google-plus  Google
-
-            // div
-            //   br
-            //   br
-            //   a(href='/pdf/docs.pdf', target='_blank') download API docs
         div.col-md-4
           h1
             span
