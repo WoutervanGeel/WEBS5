@@ -8,7 +8,7 @@ var CustomStrategy = require('passport-custom');
 var basicAuth = require('basic-auth');
 
 // load up the user model
-var User  = require('../models/user');
+// var User  = require('../models/user');
 
 // load the auth variables
 var configAuth = require('./settings');
@@ -25,7 +25,8 @@ function forbidden(res) {
 };
 
 // expose this function to our app using module.exports
-module.exports = function(passport) {
+module.exports = function(passport, mongoose) {
+    User = mongoose.model('User');
 
     /* CUSTOM LOGIN METHOD */
 
@@ -156,6 +157,7 @@ module.exports = function(passport) {
                         var newUser = new User();
 
                         // set the user's local credentials
+                        newUser.name = email;
                         newUser.group = "user";
                         newUser.local.email = email;
                         newUser.local.password = newUser.generateHash(password);
@@ -297,7 +299,8 @@ module.exports = function(passport) {
                         // if there is no user, create them
                         var newUser                 = new User();
                         newUser.group = "user";
-
+                        newUser.name = profile.username;
+                        
                         // set all of the user data that we need
                         newUser.twitter.id          = profile.id;
                         newUser.twitter.token       = token;
@@ -346,6 +349,7 @@ module.exports = function(passport) {
                         // if the user isnt in our database, create a new user
                         var newUser          = new User();
                         newUser.group = "user";
+                        newUser.name = profile.displayName;
                         
                         // set all of the relevant information
                         newUser.google.id    = profile.id;

@@ -8,8 +8,7 @@ router.get('/', function(req, res) {
   res.render('index', { title: "Home" });
 });
 
-router.get('/admin', function(req, res){
-  //res.render('admin');
+router.get('/admin', /*Validate.admin,*/ function(req, res){
   var races;
   var venues;
   var results = 
