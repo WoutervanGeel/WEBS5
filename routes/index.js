@@ -8,7 +8,7 @@ router.get('/', function(req, res) {
   res.render('index', { title: "Home" });
 });
 
-router.get('/admin', /*Validate.admin,*/ function(req, res){
+router.get('/admin', passport.authenticate('admin', { "session": false }), function(req, res){
   var races;
   var venues;
   var results = 
