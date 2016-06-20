@@ -1,19 +1,14 @@
 extends layout
 
 block content
-    a(href='/races?format=html').
+    a(href='/races').
         go to races
     h1.
         Venue List
-    ul
-        each venue, i in results
-            li
-                a(href='/venues/'+venue.name+'?format=html')= venue.name
-    h1.
-        Add New Venue
-    form#formAddVenue(name="addvenue",method="post",action="")
-        input#inputUserName(type="text", placeholder="Name", name="name")
-        input#inputUserEmail(type="text", placeholder="Category", name="category")
-        button#btnSubmit(type="submit") Toevoegen
+    table.table.table-bordered
+        each venue, index in results
+            tr
+                td
+                    a(href='/venues/'+venue.name+'')= venue.name
     
     
