@@ -10,6 +10,7 @@ function Application(){
     self.selectedEditRaceParticipants = [];
     self.userdata = {
         headerkey: "Authorization",
+        userId: "57668fa0758a5e643374e399",
         admin: "Basic YWRtaW5AYWNjb3VudC5ubDphZG1pbg==",
         user: "Basic dXNlckBhY2NvdW50Lm5sOnVzZXI="
     }
@@ -65,7 +66,6 @@ function Application(){
                 url: '/venues',
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'post',
                 data: venue,
@@ -88,12 +88,12 @@ function Application(){
                 url: '/races',
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'post',
                 data: race,
                 success: function successmethod(data) {
                     $('#newRaceName').val("");
+                    self.getRaces();
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -123,16 +123,14 @@ function Application(){
                 url: '/races/'+self.selectedEditRace,
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
-                method: 'post',
+                method: 'put',
                 data: newRace,
                 success: function successmethod(data) {
                     self.selectedEditRace = null;
                     $('#editRaceName').val("");
                     $('#editRaceVenue').val("");
-                    self.races = data.races;
-                    self.fillRaceList();
+                    self.getRaces();
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -147,16 +145,13 @@ function Application(){
                 url: '/races/'+self.selectedEditRace,
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'delete',
                 success: function successmethod(data) {
-                    console.log("deleted ",data);
                     self.selectedEditRace = null;
                     $('#editRaceName').val("");
                     $('#editRaceCategory').val("");
-                    self.races = data.races;
-                    self.fillRaceList();
+                    self.getRaces();
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -180,23 +175,18 @@ function Application(){
                 category: category
             }
             
-            console.log(newVenue);
-            
             $.ajax({
                 url: '/venues/'+self.selectedEditVenue,
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'put',
                 data: newVenue,
                 success: function successmethod(data) {
-                    console.log("here",data);
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
                     self.getVenues();
-                    self.fillVenueList();
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -211,16 +201,13 @@ function Application(){
                 url: '/venues/'+self.selectedEditVenue,
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'delete',
                 success: function successmethod(data) {
-                    console.log("deleted ",data);
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
                     self.getVenues();
-                    self.fillVenueList();
                 },
                 failure: function failuremethod(data) {console.log(data)},
             });
@@ -233,19 +220,18 @@ function Application(){
         } else {
             
             var sendData = {
-                userId: self.userId
+                userId: self.userdata.userId
             }
             
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'/participants',
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'post',
                 data: sendData,
                 success: function successmethod(data) {
-                    alert("Joined race: " + self.selectedEditRace+".");
+                    self.getParticipants();
                 },
                 failure: function failuremethod(data) {
                     console.log(data);
@@ -259,14 +245,13 @@ function Application(){
             alert("no race selected");
         } else {  
             $.ajax({
-                url: '/races/'+self.selectedEditRace+'/participants/'+self.userId,
+                url: '/races/'+self.selectedEditRace+'/participants/'+self.userdata.userId,
                 beforeSend: function(xhr){
                     xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
-                    xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
                 },
                 method: 'delete',
                 success: function successmethod(data) {
-                    alert("Left race: " + self.selectedEditRace+".");
+                    self.getParticipants();
                 },
                 failure: function failuremethod(data) {
                     console.log(data);

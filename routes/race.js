@@ -141,9 +141,9 @@ function deleteRace(req, res, next)
 function editRace(req, res, next) {
 
     if(req.body.name != null) {
-
+        console.log("race",req.params.name);
             Race.findOne({ name: req.params.name }, function (err, race){
-
+                console.log("race:",race);
                 if(race == null)
                 {
                     Response.setNotFound(req,res);
@@ -168,7 +168,8 @@ function editRace(req, res, next) {
                         var result =
                         {
                             name: race.name,
-                            status: race.status
+                            status: race.status,
+                            venue: race.venue
                         };
 
                         res.status(200);
@@ -194,7 +195,6 @@ function getParticipants(req, res, next) {
     var participants = [];
     var name = req.params.name;
     Race.getParticipants(name, function(err, data){
-        console.log("fetched participants");
         participants = data.participants;
     
         res.json({
@@ -223,7 +223,6 @@ function removeParticipant(req, res, next) {
         
         if(_.contains(race[0].participants, participantId)){
             newParticipantList = _.without(race[0].participants, participantId);
-            console.log(newParticipantList);
             race[0].participants = newParticipantList;
             race[0].save(function(error, savedRace) {
                 if(error){
@@ -270,12 +269,15 @@ function getParticipant(req, res, next) {
 }
 
 function addParticipant(req, res, next) {
+    console.log("adding participang");
     var filter = {};
     var newParticipantId = req.body.userId;
     var raceName = req.params.name;
+    console.log(req.body.userId);
+    console.log(raceName);
     
-    Race.find({name: raceName}, function(err, race) {
-        if(race[0] == null)
+    Race.findOne({name: raceName}, function(err, race) {
+        if(race == null)
         {
             return next();
         }
@@ -287,14 +289,14 @@ function addParticipant(req, res, next) {
             return next(err);
         }
         
-        if(_.contains(race[0].participants, newParticipantId)){
+        if(_.contains(race.participants, newParticipantId)){
             res.status(400);
             res.json('User is already participating in this race.');
             return next(err);
         }
 
-        race[0].participants.push(newParticipantId);
-        race[0].save(function(error, savedRace) {
+        race.participants.push(newParticipantId);
+        race.save(function(error, savedRace) {
             if(error){
                 res.status(400);
                 res.json(error);
