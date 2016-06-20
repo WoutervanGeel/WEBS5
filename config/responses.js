@@ -3,7 +3,6 @@ module.exports = {
     requestJson: function(req){
         return req.get('Content-Type') == "application/json";
     },
-
     // missing required fields
     setMissingFields: function(req, res) {
 

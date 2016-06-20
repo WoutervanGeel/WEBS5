@@ -7,6 +7,8 @@ function Application(){
     self.races = [];
     self.selectedEditRace = null;
     self.selectedEditVenue = null;
+    self.selectedEditRaceParticipants = [];
+    self.userId = '5766047fb52c616831090325';
     
     self.getRaces = function(){
         $.ajax({
@@ -196,6 +198,80 @@ function Application(){
         }
     }
     
+    self.joinRace = function(){
+        if(self.selectedEditRace == null){
+            alert("no race selected");
+        } else {
+            
+            var sendData = {
+                userId: self.userId
+            }
+            
+            $.ajax({
+                url: '/races/'+self.selectedEditRace+'/participants',
+                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                method: 'post',
+                data: sendData,
+                success: function successmethod(data) {
+                    alert("Joined race: " + self.selectedEditRace+".");
+                },
+                failure: function failuremethod(data) {
+                    console.log(data);
+                },
+            });
+        }
+    }
+    
+    self.leaveRace = function(){
+        if(self.selectedEditRace == null){
+            alert("no race selected");
+        } else {  
+            $.ajax({
+                url: '/races/'+self.selectedEditRace+'/participants/'+self.userId,
+                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                method: 'delete',
+                success: function successmethod(data) {
+                    alert("Left race: " + self.selectedEditRace+".");
+                },
+                failure: function failuremethod(data) {
+                    console.log(data);
+                },
+            });
+        }
+    }
+    
+    self.getParticipants = function(){
+        $.ajax({
+            url: '/races/'+self.selectedEditRace,
+            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            method: 'get',
+            success: function successmethod(data) {
+                self.selectedEditRaceParticipants = data.participants;
+                self.fillRaceParticipantList();},
+            failure: function failuremethod(data) {console.log(data)},
+        });
+    }
+    
+    self.getRaceByName = function(name){
+        for(race in self.races){
+            if(self.races[race].name == name){
+                return self.races[race];
+            }
+        }
+        console.log("not found");
+        return null;
+    }
+    
+    self.getVenueByName = function(name){
+        for(venue in self.venues){
+            if(self.venues[venue].name == name){
+                return self.venues[venue];
+            }
+        }
+        console.log("not found");
+        return null;
+    }
+    
     self.onclickRacesButtons = function(){
         $('#editRaceList .list-group-item').on('click', function(e){
             var name = e.target.innerHTML;
@@ -239,27 +315,17 @@ function Application(){
             self.deleteVenue();
         });
         
+        $('#joinRaceButton').on('click', function(e){
+           e.preventDefault();
+           self.joinRace(); 
+        });
+        
+        $('#leaveRaceButton').on('click', function(e){
+           e.preventDefault();
+           self.leaveRace(); 
+        });
+        
         self.onclickRacesButtons();
-    }
-    
-    self.getRaceByName = function(name){
-        for(race in self.races){
-            if(self.races[race].name == name){
-                return self.races[race];
-            }
-        }
-        console.log("not found");
-        return null;
-    }
-    
-    self.getVenueByName = function(name){
-        for(venue in self.venues){
-            if(self.venues[venue].name == name){
-                return self.venues[venue];
-            }
-        }
-        console.log("not found");
-        return null;
     }
     
     self.fillRaceList = function(){
@@ -270,9 +336,17 @@ function Application(){
                 var name = e.target.innerHTML;
                 var venue = self.getRaceByName(name).venue;
                 self.selectedEditRace = name;
+                self.getParticipants();
                 $('#editRaceName').val(name);
                 $('#editRaceVenue').val(venue);
             });
+        }
+    }
+    
+    self.fillRaceParticipantList = function(){
+        $('#raceParticipantList').empty();
+        for(participant in self.selectedEditRaceParticipants){
+            $('#raceParticipantList').append('<a href="#" class="list-group-item">'+self.selectedEditRaceParticipants[participant]+'</a>');
         }
     }
     
