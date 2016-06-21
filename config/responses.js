@@ -33,6 +33,21 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
+    // not found
+    setNotFoundOnLocal: function(req, res) {
+
+        var result = {
+            status  : 404,
+            message : 'Not found on local DB'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
     // internal error
     setServerError: function(req, res) {
 

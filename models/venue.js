@@ -4,6 +4,11 @@ function init(mongoose)
     
     var venueSchema = new Schema
     ({
+        id:
+        {
+            type: String,
+            required: [true, 'Id is required.']
+        },
         index:
         {
             type: Number
@@ -32,10 +37,11 @@ function init(mongoose)
     };
     
     venueSchema.statics.findByName = function (name, callback) {
-        return this.find({name: name}, callback);
+        return this.findOne({name: name}, callback);
     };
     
     mongoose.model('Venue', venueSchema);
 };
+
 
 module.exports = init;

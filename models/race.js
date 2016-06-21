@@ -18,7 +18,8 @@ function init(mongoose)
         venue: {
             type: String,
             ref: "Venue",
-            required: false
+            required: false,
+            default: null
         }, 
         participants: {
             type: [{
@@ -34,19 +35,36 @@ function init(mongoose)
             if(race == null){
                 callback(err, race);
             } else {
-                Venue.findByName(race.venue, function(err, resultVenue){
-                    var resultRace = 
-                    {
-                        name: race.name,
-                        participants: [],
-                        status: race.status,
-                        venue: resultVenue[0]
-                    }
-                    _getParticipantsFromCollection(race.participants, function(err, list){
-                        resultRace.participants = list;
+                var resultRace = 
+                {
+                    name: race.name,
+                    participants: [],
+                    status: race.status,
+                    venue: null
+                }
+                if(race.venue == undefined || race.venue == null){
+                    if(race.participants.length > 0){
+                        _getParticipantsFromCollection(race.participants, function(err, list){
+                            resultRace.participants = list;
+                            console.log("resultRace: ", resultRace);
+                            callback(err, resultRace);
+                        });
+                    } else {
                         callback(err, resultRace);
+                    }
+                } else {
+                    Venue.findByName(race.venue, function(err, resultVenue){
+                        resultRace.venue = resultVenue;
+                        if(race.participants.length != 0){
+                            _getParticipantsFromCollection(race.participants, function(err, list){
+                                resultRace.participants = list;
+                                callback(err, resultRace);
+                            });
+                        } else {
+                            callback(err, resultRace);
+                        }
                     });
-                });
+                }
             }
         });
     };
