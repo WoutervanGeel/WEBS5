@@ -11,6 +11,37 @@ var dataMapper =
         Venue.find({}, function(error, doc)
         {
             if(error) return errorCallback(error);
+
+            if(doc.length == 0)
+            {
+                request(domainURL + '/venues', function(error, response, body)
+                {
+                    var externalData = JSON.parse(body);
+
+                    _.each(externalData.results, function(result)
+                    {
+                        var venue = new Venue();
+                        venue.name = result.name;
+                        venue.index = result.id;
+                        venue.category = result.category;
+                        venue.isMapped = false; //Only true if fully mapped on first user access.
+                        venue.save(function(error, savedVenue)
+                        {
+                            if(error) errorCallback(error);
+                        });
+                    });
+                    successCallback();
+                });
+            }
+            else successCallback();
+        });
+    },
+
+    mapAllVenues: function(errorCallback, successCallback)
+    {
+        Venue.find({}, function(error, doc)
+        {
+            if(error) return errorCallback(error);
             
             if(doc.length == 0)
             {

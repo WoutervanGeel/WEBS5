@@ -5,9 +5,12 @@ var request = require('request');
 var _ = require('underscore');
 var Response = require('../config/responses');
 var passport = require('passport');
+var mongodb = require('mongodb');
 
 var Venue;
 var DataMapper;
+
+var api_url = 'https://api.eet.nu/venues';
 
 /* REQUEST HANDLER FUNCTIONS */
 function getAll(req, res, next) {
@@ -40,10 +43,10 @@ function getAll(req, res, next) {
     ([
         function(callback)
         {
-            var api_url = 'https://api.eet.nu/venues';
+            var url = api_url;
             if(req.query.name)
-                api_url = 'https://api.eet.nu/venues?query='+req.query.name;
-            request(api_url, function(error, response, body)
+                url += '?query='+req.query.name;
+            request(url, function(error, response, body)
             {
                 if(error)
                     return callback(error);
@@ -53,12 +56,13 @@ function getAll(req, res, next) {
                 _.each(externalVenues.results, function(result)
                 {
                     var venue = {};
+                    venue.id = ""+result.id;
                     venue.name = result.name;
                     venue.category = result.category;
-                    venue.local = false
+                    venue.local = false;
 
-                    if(!(venue.name in combinedVenues))
-                        combinedVenues[venue.name] = venue;
+                    if(!(venue.id in combinedVenues))
+                        combinedVenues[venue.id] = venue;
                 });
                 return callback();
             });
@@ -75,7 +79,8 @@ function getAll(req, res, next) {
 
                 _.every(docs, function(doc)
                 {
-                    combinedVenues[doc.name] = {
+                    combinedVenues[doc.id] = {
+                        id: doc._id,
                         name: doc.name,
                         category: doc.category,
                         local: true
@@ -101,6 +106,7 @@ function getAll(req, res, next) {
             if (combinedVenues.hasOwnProperty(k)) {
                 if(!req.query.category || combinedVenues[k].category.toLowerCase().indexOf(req.query.category.toLowerCase()) > -1) {
                     venuesResult.push({
+                        id: combinedVenues[k].id,
                         name: combinedVenues[k].name,
                         category: combinedVenues[k].category
                     });
@@ -131,50 +137,74 @@ function getAll(req, res, next) {
 
 function getVenue(req, res, next)
 {
-    Venue.findOne({ name: req.params.name }, function(err, doc)
+    Venue.findOne({ _id: req.params.id }, function(err, doc)
     {
         if(doc == null)
         {
-            Response.setNotFound(req,res);
-            return next();
-        }
-
-        if(err)
-        {
-            Response.setServerError(req,res);
-            return next();
-        }
-
-        if(!doc.isMapped)
-        {
-            DataMapper.mapVenue(doc,
-                function() {
-                    Response.setServerError(req,res);
-                    return next();
-                },
-                function(result) {
-                    res.status(200);
-                    if (Response.requestJson(req))
-                        res.json(result);
-                    else
-                        res.render("singleVenue", {response: result });
-                });
-        }
-        else
-        {
-            var result =
+            request(api_url+"/"+req.params.id, function(error, response, body)
             {
-                name: doc.get('name'),
-                category: doc.get('category')
-            };
+                if(error) {
+                    Response.setServerError(req, res);
+                    return next();
+                }
 
-            res.status(200);
-            if(Response.requestJson(req))
-                res.json(result);
-            else
-                res.render("singleVenue", { response: result });
+                var jsonObj = JSON.parse(body);
+
+                if(!jsonObj.id)
+                {
+                    Response.setNotFound(req,res);
+                    return next();
+                }
+
+                var result =
+                {
+                    id: jsonObj.id,
+                    name: jsonObj.name,
+                    category: jsonObj.category
+                };
+
+                res.status(200);
+                if (Response.requestJson(req))
+                    res.json(result);
+                else
+                    res.render("singleVenue", {response: result});
+            });
         }
+        else {
+            if (err) {
+                Response.setServerError(req, res);
+                return next();
+            }
 
+            if (!doc.isMapped) {
+                DataMapper.mapVenue(doc,
+                    function () {
+                        Response.setServerError(req, res);
+                        return next();
+                    },
+                    function (result) {
+                        res.status(200);
+                        if (Response.requestJson(req))
+                            res.json(result);
+                        else
+                            res.render("singleVenue", {response: result});
+                    });
+            }
+            else {
+                var result =
+                {
+                    id: doc.get('_id'),
+                    name: doc.get('name'),
+                    category: doc.get('category')
+                };
+
+                res.status(200);
+                if (Response.requestJson(req))
+                    res.json(result);
+                else
+                    res.render("singleVenue", {response: result});
+            }
+        }
     });
 }
 
@@ -214,15 +244,23 @@ function addVenue(req, res, next)
 
 function deleteVenue(req, res, next)
 {
-    Venue.remove({ name: req.params.name }, function(err, obj) {
-        if(obj.result.n === 0) {
-            Response.setNotFound(req,res);
+    Venue.findOne({ _id: req.params.id }, function (err, doc){
+
+        if(doc == null)
+        {
+            Response.setNotFoundOnLocal(req,res);
             return next();
         }
+
         if(err)
+        {
             Response.setServerError(req,res);
-        else
-            Response.showDeleteSuccess(req,res, req.params.name)
+            return next();
+        }
+
+        doc.remove();
+
+        Response.showDeleteSuccess(req,res, doc.name)
     });
 }
 
@@ -270,10 +308,10 @@ function editVenue(req, res, next) {
 
 /* ROUTING */
 router.get('/', passport.authenticate('user', { "session": false }), getAll);
-router.get('/:name', passport.authenticate('user', { "session": false }), getVenue);
-router.post('/', passport.authenticate('admin', { "session": false }), addVenue);
-router.put('/:name', passport.authenticate('admin', { "session": false }), editVenue);
-router.delete('/:name', passport.authenticate('admin', { "session": false }), deleteVenue);
+router.get('/:id', passport.authenticate('user', { "session": false }), getVenue);
+router.post('/', passport.authenticate('admin', { "session": false }), addVenue); // todo
+router.put('/:id', passport.authenticate('admin', { "session": false }), editVenue); //todo
+router.delete('/:id', passport.authenticate('admin', { "session": false }), deleteVenue);
 
 /* EXPORT FUNCTION */
 module.exports = function(mongoose, mapper)

@@ -4,6 +4,11 @@ function init(mongoose)
     
     var venueSchema = new Schema
     ({
+        id:
+        {
+            type: String,
+            required: [true, 'Id is required.']
+        },
         index:
         {
             type: Number
