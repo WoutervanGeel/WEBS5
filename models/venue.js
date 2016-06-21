@@ -4,6 +4,11 @@ function init(mongoose)
     
     var venueSchema = new Schema
     ({
+        id:
+        {
+            type: String,
+            required: [true, 'Id is required.']
+        },
         index:
         {
             type: Number
@@ -37,5 +42,6 @@ function init(mongoose)
     
     mongoose.model('Venue', venueSchema);
 };
+
 
 module.exports = init;

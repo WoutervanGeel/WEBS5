@@ -6,6 +6,7 @@ var domainURL;
 
 var dataMapper =
 {
+
     mapAllVenues: function(errorCallback, successCallback)
     {
         Venue.find({}, function(error, doc)
@@ -76,8 +77,10 @@ var dataMapper =
                 
                 var response =
                 {
+                    id: doc.get('id'),
                     name: doc.get('name'),
-                    category: doc.get('category')
+                    category: doc.get('category'),
+                    local: true
                 };
                 successCallback(response);
             });

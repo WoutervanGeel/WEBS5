@@ -7,8 +7,14 @@ block content
         #{response.name}
     table.table.table-bordered
         tr
+            th= "Id"
+            td= response.id
+        tr
             th= "Name"
             td= response.name
         tr
             th= "Category"
             td= response.category
+        tr
+            th= "Local"
+            td= response.local
