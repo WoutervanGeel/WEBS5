@@ -33,13 +33,6 @@ before(function(done)
 {
     this.timeout(30000);
     mongoose.connect(''); //Does not matter what we connect to mockgoose intercepts the call.
-    // dataMapper.mapAllVenues(function(error)
-    // {
-    //     done(error);
-    // }, function()
-    // {
-    //     done();
-    // });
 });
 
 describe('Testing /races route', function()
@@ -51,6 +44,25 @@ describe('Testing /races route', function()
             var databaseRaces;
             async.series
             ([
+                function(callback)
+                {
+                    async.parallel
+                    ([
+                        
+                    ], function(error)
+                    {
+                        if(error) done(error);
+                        else done();
+                    });
+                    testRace1 = new Race();
+                    testRace1.name = "testRace1";
+                    testRace1.status = "not_started";
+                    testRace1.save(function (error, doc) 
+                    {
+                        if(error) return callback(error);
+                        callback();
+                    });
+                },
                 function(callback)
                 {
                     Race.find({}, function(error, doc)
