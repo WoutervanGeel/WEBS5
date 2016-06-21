@@ -7,23 +7,29 @@ const app = require('../app');
 
 // define globals
 // USERS
-global.user = null;
-global.admin = null;
-global.goodUser1 = null;
-global.goodUser2 = null;
-global.goodUser3 = null;
-global.wrongUser1 = null; //no name
-global.wrongUser2 = null; //no email
-global.wrongUser3 = null; //no password
+global.users = {
+    user = null,
+    admin = null,
+    goodUser1 = null,
+    goodUser2 = null,
+    goodUser3 = null,
+    wrongUser1 = null, //no name
+    wrongUser2 = null, //no email
+    wrongUser3 = null //no password
+}
+
 
 // VENUES
-global.goodVenue1 = null;
-global.goodVenue2 = null;
-global.goodVenue3 = null;
-global.wrongVenue1 = null; //no name
-global.wrongVenue2 = null; //no category
+global.venues = {
+    goodVenue1 = null,
+    goodVenue2 = null,
+    goodVenue3 = null,
+    wrongVenue1 = null, //no name
+    wrongVenue2 = null //no category
+}
 
 // RACES
+global.races = {
 global.goodRace1 = null;
 global.goodRace2 = null;
 global.goodRace3 = null;
@@ -32,6 +38,7 @@ global.wrongRace2 = null; //no status
 global.wrongRace3 = null; //wrong status
 global.wrongRace4 = null; //wrong venue
 global.wrongRace5 = null; //wrong user in participants
+}
 
 var initUsers = function(){
     global.user = new User({
