@@ -8,8 +8,8 @@ function Application(){
     self.selectedEditRace = null;
     self.selectedEditVenue = null;
     self.selectedEditRaceParticipants = [];
-
-    self.bAuth = btoa("admin@account.nl" + ":" + "admin");
+    self.page = 0;
+    self.venueFilter = '';
 
     self.userdata = {
         headerkey: "Authorization",
@@ -38,8 +38,14 @@ function Application(){
     }
     
     self.getVenues = function(){
+        if(self.venueFilter.length === 0){
+            console.log("empty");
+        } else {
+            console.log("not empty");
+            self.page = 0;
+        }
         $.ajax({
-            url: '/venues',
+            url: '/venues?page='+self.page+'&limit=10&name='+self.venueFilter,
             beforeSend: function(xhr){
                 xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
                 xhr.setRequestHeader(self.datatype.headerkey, self.datatype.value);
@@ -350,6 +356,26 @@ function Application(){
            self.leaveRace(); 
         });
         
+        $('#leftEditVenueVenueButton').on('click', function(e){
+           e.preventDefault();
+           if(self.page > 0){
+               self.page = self.page -1;
+           }
+           self.getVenues();
+        });
+        
+        $('#rightEditVenueVenueButton').on('click', function(e){
+           e.preventDefault();
+           self.page = self.page + 1;
+           self.getVenues();
+        });
+        
+        $('#searchVenueButton').on('click', function(e){
+           e.preventDefault();
+           self.venueFilter = $('#venueFilter').val(); 
+           self.getVenues();
+        });
+
         self.onclickRacesButtons();
     }
     
@@ -378,14 +404,26 @@ function Application(){
     self.fillVenueList = function(){
         $('#editVenueList').empty();
         for(venue in self.venues){
-            $('#editVenueList').append('<a href="#" class="list-group-item">'+self.venues[venue].name+'</a>').on('click', function(e){
-                e.preventDefault();
-                var name = e.target.innerHTML;
-                var category = self.getVenueByName(name).category;
-                self.selectedEditVenue = name;
-                $('#editVenueName').val(name);
-                $('#editVenueCategory').val(category);
-            });
+            console.log(self.venues[venue]);
+            if(self.venues[venue].local == null || self.venues[venue].local == undefined || self.venues[venue].local == false){
+                $('#editVenueList').append('<a href="#" class="list-group-item">X - '+self.venues[venue].name+'</a>').on('click', function(e){
+                    e.preventDefault();
+                    var name = e.target.innerHTML;
+                    alert("You can only change our venues");
+                    self.selectedEditVenue = null;
+                    $('#editVenueName').val("");
+                    $('#editVenueCategory').val("");
+                });
+            } else {
+                $('#editVenueList').append('<a href="#" class="list-group-item">'+self.venues[venue].name+'</a>').on('click', function(e){
+                    e.preventDefault();
+                    var name = e.target.innerHTML;
+                    var category = self.getVenueByName(name).category;
+                    self.selectedEditVenue = self.venues[venue].id;
+                    $('#editVenueName').val(name);
+                    $('#editVenueCategory').val(category);
+                });
+            }
         }
     }
     

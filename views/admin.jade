@@ -66,9 +66,13 @@ block content
             span
             |  Edit Venue
 
+          input#venueFilter.form-control(type='text', name='venueFilter')
+          button#searchVenueButton.btn.btn-warning.btn-lg(type='submit') Search
           div#editVenueList.list-group
               each venue, i in results.venues
                   a.list-group-item(href='#')= venue.name
+          button#leftEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') previous page
+          button#rightEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') next page
                   
           // Venues EDIT FORM
           form
