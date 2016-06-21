@@ -38,29 +38,11 @@ require('./models/race')(mongoose);
 
 require('./config/passport')(passport, mongoose); // pass passport for configuration
 
-// var dataMapper = require('./datamappers/pokemon')(mongoose, 'http://pokeapi.co/api/v2');
-// dataMapper.mapAllPokemon(function(error)
-// {
-//     console.log(error);
-// }, function()
-// {
-//     console.log('Mapping of all external Pokemon names done.')
-// });
-var dataMapper = require('./datamappers/venue')(mongoose, 'https://api.eet.nu');
-dataMapper.mapAllVenues(function(error)
-{
-    console.log(error);
-}, function()
-{
-    console.log('Mapping of all external Venue names done.')
-});
 
 var app = express();
 
-
-
 var routes = require('./routes/index')(mongoose);
-var venues = require('./routes/venue')(mongoose, dataMapper);
+var venues = require('./routes/venue')(mongoose);
 var races = require('./routes/race')(mongoose);
 
 // view engine setup
