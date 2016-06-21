@@ -12,10 +12,8 @@ mockgoose(mongoose);
 require('../models/venue')(mongoose);
 var Venue = mongoose.model('Venue');
 
-var dataMapper = require('../datamappers/venues')(mongoose);
-
 var app = require('express')();
-var venueRoute = require('../routes/venues')(mongoose, dataMapper);
+var venueRoute = require('../routes/venues')(mongoose);
 app.use('/venues', venueRoute);
 
 function makeRequest(route, statusCode, done)
@@ -35,13 +33,6 @@ before(function(done)
 {
     this.timeout(30000);
     mongoose.connect(''); //Does not matter what we connect to mockgoose intercepts the call.
-    dataMapper.mapAllVenues(function(error)
-    {
-        done(error);
-    }, function()
-    {
-        done();
-    });
 });
 
 describe('Testing /venues route', function()
@@ -94,54 +85,54 @@ describe('Testing /venues route', function()
                 else done();
             });
         });
-        // it('should return a list of 60 pokemon starting from the 21st index. HTTP CODE = 200', function(done)
-        // {
-        //     var databaseVenues;
-        //     async.series
-        //     ([
-        //         function(callback)
-        //         {
-        //             Pokemon.find({}, function(error, doc)
-        //             {
-        //                 if(error) return callback(error);
-        //                 databaseVenues = doc;
-        //                 callback();
-        //             });
-        //         }, function(callback)
-        //         {
-        //             var expectedCount = 60;
+        it('should return a list of 60 pokemon starting from the 21st index. HTTP CODE = 200', function(done)
+        {
+            var databaseVenues;
+            async.series
+            ([
+                function(callback)
+                {
+                    Pokemon.find({}, function(error, doc)
+                    {
+                        if(error) return callback(error);
+                        databaseVenues = doc;
+                        callback();
+                    });
+                }, function(callback)
+                {
+                    var expectedCount = 60;
                     
-        //             makeRequest('/pokemon?limit=60&offset=20', 200, function(err, res)
-        //             {
-        //                 if(err) return callback(err);
+                    makeRequest('/pokemon?limit=60&offset=20', 200, function(err, res)
+                    {
+                        if(err) return callback(err);
                         
-        //                 expect(res.body).to.have.property('count').and.not.be.undefined;
-        //                 expect(res.body).to.have.property('results').and.not.be.undefined;
-        //                 expect(res.body.results).to.be.an('array');
+                        expect(res.body).to.have.property('count').and.not.be.undefined;
+                        expect(res.body).to.have.property('results').and.not.be.undefined;
+                        expect(res.body.results).to.be.an('array');
                         
-        //                 var arrayIndex = 20; //Used as index for the databasePokemon array.
-        //                 var actualCounted = 0;
-        //                 _.each(res.body.results, function(result)
-        //                 {
-        //                     expect(result).to.have.property('name').and.not.be.undefined;
-        //                     expect(result.name).to.be.an('string');
-        //                     expect(result.name).to.equal(databaseVenues[arrayIndex].name);
-        //                     actualCounted++;
-        //                     arrayIndex++;
-        //                 });
+                        var arrayIndex = 20; //Used as index for the databasePokemon array.
+                        var actualCounted = 0;
+                        _.each(res.body.results, function(result)
+                        {
+                            expect(result).to.have.property('name').and.not.be.undefined;
+                            expect(result.name).to.be.an('string');
+                            expect(result.name).to.equal(databaseVenues[arrayIndex].name);
+                            actualCounted++;
+                            arrayIndex++;
+                        });
                         
-        //                 expect(actualCounted).to.equal(expectedCount);
-        //                 expect(res.body.count).to.equal(expectedCount);
+                        expect(actualCounted).to.equal(expectedCount);
+                        expect(res.body.count).to.equal(expectedCount);
                         
-        //                 callback();
-        //             });
-        //         }
-        //     ], function(error)
-        //     {
-        //         if(error) done(error);
-        //         else done();
-        //     });
-        // });
+                        callback();
+                    });
+                }
+            ], function(error)
+            {
+                if(error) done(error);
+                else done();
+            });
+        });
     });
     describe('Testing /venues with negative results.', function()
     {

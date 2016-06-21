@@ -8,6 +8,9 @@ function Application(){
     self.selectedEditRace = null;
     self.selectedEditVenue = null;
     self.selectedEditRaceParticipants = [];
+
+    self.bAuth = btoa("admin@account.nl" + ":" + "admin");
+
     self.userdata = {
         headerkey: "Authorization",
         userId: "57668fa0758a5e643374e399",
