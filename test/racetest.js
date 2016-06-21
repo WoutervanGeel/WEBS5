@@ -44,7 +44,7 @@ before(function(done)
 
 describe('Testing /races route', function()
 {
-    describe('Testing /races with positive results.', function()
+    describe('Testing /races GET.', function()
     {
         it('should return a list of races. HTTP CODE = 200', function(done)
         {
@@ -93,89 +93,89 @@ describe('Testing /races route', function()
             });
         });
     });
-    describe('Testing /races with negative results.', function()
-    {
-        it('should return HTTP 400 if format is not "html" or "json".', function(done)
-        {
-            makeRequest('/races?format=a', 400, function(err, res)
-            {
-                if(err) return done(err);
-                done();
-            });
-        });
-    });
+    // describe('Testing /races with negative results.', function()
+    // {
+    //     it('should return HTTP 400 if format is not "html" or "json".', function(done)
+    //     {
+    //         makeRequest('/races?format=a', 400, function(err, res)
+    //         {
+    //             if(err) return done(err);
+    //             done();
+    //         });
+    //     });
+    // });
 });
 
-describe('Testing /races/:name route', function()
-{
-    var testVenueData =
-    {
-        "name": "testVenueName",
-        "category": "testVenueCategory"
-    }
-    var testVenue = new Venue(testVenueData);
-    var testRaceData =
-    {
-        "name": 'testRace',
-        "category": "testCategory",
-        "venue": testVenueData
-    };
+// describe('Testing /races/:name route', function()
+// {
+//     var testVenueData =
+//     {
+//         "name": "testVenueName",
+//         "category": "testVenueCategory"
+//     }
+//     var testVenue = new Venue(testVenueData);
+//     var testRaceData =
+//     {
+//         "name": 'testRace',
+//         "category": "testCategory",
+//         "venue": testVenueData
+//     };
     
-    var testRace = new Race(testRaceData);
-    before(function(done)
-    {
-        testVenue.save(function(err, savedVenue)
-        {
-            if(err) return done(err);
-            done();
-        });
+//     var testRace = new Race(testRaceData);
+//     before(function(done)
+//     {
+//         testVenue.save(function(err, savedVenue)
+//         {
+//             if(err) return done(err);
+//             done();
+//         });
         
-        testRace.save(function(err, savedRace)
-        {
-            if(err) return done(err);
-            done();
-        });
-    });
-    describe('Testing /races/:name with positive results.', function()
-    {
-        it('should return Race data.', function(done)
-        {
-            makeRequest('/races/testRace', 200, function(err, res)
-            {
-                if(err) return done(err);
+//         testRace.save(function(err, savedRace)
+//         {
+//             if(err) return done(err);
+//             done();
+//         });
+//     });
+//     describe('Testing /races/:name with positive results.', function()
+//     {
+//         it('should return Race data.', function(done)
+//         {
+//             makeRequest('/races/testRace', 200, function(err, res)
+//             {
+//                 if(err) return done(err);
                 
-                expect(res.body).to.have.property('name');
-                expect(res.body).to.have.property('status');
-                expect(res.body).to.have.property('venue');
+//                 expect(res.body).to.have.property('name');
+//                 expect(res.body).to.have.property('status');
+//                 expect(res.body).to.have.property('venue');
                 
-                expect(res.body.name).to.equal(testRace.name);
-                expect(res.body.status).to.equal(testRace.category);
-                expect(res.body.venue).to.equal(testRace.venue);
+//                 expect(res.body.name).to.equal(testRace.name);
+//                 expect(res.body.status).to.equal(testRace.category);
+//                 expect(res.body.venue).to.equal(testRace.venue);
                 
-                done();
-            });
-        });
-    });
-    describe('Testing /races/:name with negative results.', function()
-    {
-       it('should return HTTP 404 when no name matches a Race in the database.', function(done)
-       {
-           makeRequest('/races/nonexistingrace', 404, function(err, res)
-           {
-               if(err) return done(err);
-               done();
-           });
-       });
-    });
-    after(function(done)
-    {
-        testRace.remove(function(err, removedRace)
-        {
-            if(err) return done(err);
-            done();
-        });
-    });
-});
+//                 done();
+//             });
+//         });
+//     });
+//     describe('Testing /races/:name with negative results.', function()
+//     {
+//        it('should return HTTP 404 when no name matches a Race in the database.', function(done)
+//        {
+//            makeRequest('/races/nonexistingrace', 404, function(err, res)
+//            {
+//                if(err) return done(err);
+//                done();
+//            });
+//        });
+//     });
+//     after(function(done)
+//     {
+//         testRace.remove(function(err, removedRace)
+//         {
+//             if(err) return done(err);
+//             done();
+//         });
+//     });
+// });
 
 after(function(done)
 {
