@@ -1,334 +1,214 @@
-const User = require('../models/User');
-const Venue = require('../models/Venue');
-const Race = require('../models/Race');
+// "use strict";
 
-const request = require('supertest');
-const app = require('../app');
+// var mongoose = require('mongoose');
+// var bcrypt   = require('bcrypt-nodejs');
 
-// define globals
-// USERS
-global.users = {
-    user = null,
-    admin = null,
-    goodUser1 = null,
-    goodUser2 = null,
-    goodUser3 = null,
-    wrongUser1 = null, //no name
-    wrongUser2 = null, //no email
-    wrongUser3 = null //no password
-}
+// var mockgoose = require('mockgoose');
+// mockgoose(mongoose);
 
+// const User = require('../models/User')(mongoose, bcrypt);
+// const Venue = require('../models/Venue')(mongoose);
+// const Race = require('../models/Race')(mongoose);
 
-// VENUES
-global.venues = {
-    goodVenue1 = null,
-    goodVenue2 = null,
-    goodVenue3 = null,
-    wrongVenue1 = null, //no name
-    wrongVenue2 = null //no category
-}
+// const request = require('supertest');
+// const app = require('../app');
+// const co = require('co');
 
-// RACES
-global.races = {
-global.goodRace1 = null;
-global.goodRace2 = null;
-global.goodRace3 = null;
-global.wrongRace1 = null; //no name
-global.wrongRace2 = null; //no status
-global.wrongRace3 = null; //wrong status
-global.wrongRace4 = null; //wrong venue
-global.wrongRace5 = null; //wrong user in participants
-}
+// // define globals
+// global.user = null;
+// global.admin = null;
+// global.venue = null;
+// global.raceVenue = null;
+// global.race = null;
+// global.participant1 = null;
+// global.participant2 = null;
 
-var initUsers = function(){
-    global.user = new User({
-        name: 'testUser',
-        group: 'user',
-        local: 
-        {
-            email: "testUser@test.nl",
-            password: "test"
-        }
-    });
-    
-    global.admin = new User({
-        name: 'testAdmin',
-        group: 'admin',
-        local: 
-        {
-            email: "testAdmin@test.nl",
-            password: "test"
-        } 
-    });
-    
-    global.goodUser1 = new User({
-        name: 'goodUser 1',
-        group: 'user',
-        local: 
-        {
-            email: "goodUser1@test.nl",
-            password: "test"
-        }
-    });
-    
-    global.goodUser2 = new User({
-        name: 'goodUser 2',
-        group: 'user',
-        local: 
-        {
-            email: "goodUser2@test.nl",
-            password: "test"
-        }
-    });
-    
-    global.goodUser3 = new User({
-        name: 'goodUser 3',
-        group: 'user',
-        local: 
-        {
-            email: "goodUser3@test.nl",
-            password: "test"
-        }
-    });
-    
-    //no name
-    global.wrongUser1 = new User({
-        group: 'user',
-        local: 
-        {
-            email: "wrongUser1@test.nl",
-            password: "test"
-        }
-    });
-    
-    //no email
-    global.wrongUser2 = new User({
-        name: 'wrongUser 2',
-        group: 'user',
-        local: 
-        {
-            password: "test"
-        }
-    });
-    
-    //no password
-    global.wrongUser3 = new User({
-        name: 'wrongUser 3',
-        group: 'user',
-        local: 
-        {
-            email: "goodUser3@test.nl"
-        }
-    });
-    
-    // global.venue = new Venue({
-    //     name: "testVenue1",
-    //     category: "testCategory1"
-    // });
-}
+// var init = {
+//     promiseUser: new Promise(function (resolve, reject) {
+//         global.user = new User({
+//             name: 'testUser',
+//             group: 'user',
+//             local: 
+//             {
+//                 email: 'testuser@test.nl',
+//                 password: 'test'
+//             }
+//         });
 
-var initVenues = function(){
-    global.goodVenue1 = new Venue({
-        name: "goodVenue 1",
-        category: "testCategory1"        
-    });
-    
-    global.goodVenue2 = new Venue({
-        name: "goodVenue 2",
-        category: "testCategory2"        
-    });
-    
-    global.goodVenue2 = new Venue({
-        name: "goodVenue 1",
-        category: "testCategory1"        
-    });
-    
-    // no name
-    global.wrongVenue1 = new Venue({
-        category: "testCategory1"        
-    });
-    
-    // no category
-    global.goodVenue1 = new Venue({
-        name: "goodVenue 1"       
-    });
-}
+//         global.user.save(function (error, user) {
+//             if (error) {
+//                 console.log(error);
+//                 reject();
+//             }
 
-var initRaces = function(){
-    global.goodRace1 = new Race({
-        name: "goodRace 1",
-        status: "not_started"
-    });
-    
-    global.goodRace2 = new Race({
-        name: "goodRace 2",
-        status: "started"
-    });
-    
-    global.goodRace3 = new Race({
-        name: "goodRace 3",
-        status: "ended"
-    });
-    
-    // no name
-    global.wrongRace1 = new Race({
-        status: "not_started"
-    });
-    
-    // no status 
-    global.wrongRace2 = new Race({
-        name: "wrongRace 2"
-    });
-    
-    // wrong status
-    global.wrongRace3 = new Race({
-        name: "wrongRace 3",
-        status: "testStatus"
-    });
-    
-    // wrong venue
-    global.wrongRace4 = new Race({
-        name: "wrongRace 4",
-        status: "not_started",
-        venue: "not a venue"
-    });
-    
-    // wrong user in participants
-    global.wrongRace5 = new Race({
-        name: "wrongRace 1",
-        status: "not_started",
-        participants: ["not a userId"]
-    });
-}
+//             resolve();
+//         });
+//     }),
+//     promiseAdmin: new Promise(function (resolve, reject) {
+//         global.admin = new User({
+//             name: 'testAdmin',
+//             group: 'admin',
+//             local: 
+//             {
+//                 email: 'testadmin@test.nl',
+//                 password: 'test'
+//             }
+//         });
 
-//setup database
-//clear database after test
+//         global.admin.save(function (error, user) {
+//             if (error) {
+//                 console.log(error);
+//                 reject();
+//             }
 
-var init = function(){
-    initUsers();
-    initVenues();
-    initRaces();
-}
+//             resolve();
+//         });
+//     }),
+//     promiseVenue: new Promise(function (resolve, reject) {
+//         global.venue = new Venue({
+//             name: "test venue",
+//             category: "testing category"
+//         });
 
-var fill = function(){
-    
-}
+//         global.venue.save(function (error, user) {
+//             if (error) {
+//                 console.log(error);
+//                 reject();
+//             }
+//             resolve();
+//         });
+//     }),
+//     promiseRace: new Promise(function (resolve, reject) {
+//         let promiseParticipant1 = (global.participant1 = new User({
+//             name: 'participant 1',
+//             group: 'user',
+//             local: {
+//                 email: 'p1@test.nl',
+//                 password: 'test'
+//             }
+//         })).save();
 
-var clearDb = function(){
-    // clearDb: new Promise(function (resolve, reject) {
-    //     const config = require('../lib/config');
+//         let promiseParticipant2 = (global.participant2 = new User({
+//             name: 'participant 2',
+//             group: 'user',
+//             local: {
+//                 email: 'p2@test.nl',
+//                 password: 'test'
+//             }
+//         })).save();
 
-    //     // prevent testing on a production server
-    //     if (config.production) {
-    //         throw new Error("Can't test on a production server");
-    //     }
+//         Promise.all([
+//             promiseParticipant1,
+//             promiseParticipant2,
+//             promiseRace
+//         ]).then(function (data) {
+//             global.participant1._id = data[0]._id;
+//             global.participant2._id = data[1]._id;
+            
+//             let promiseRace = (global.race = new Race({
+//                 name: 'test Race',
+//                 status: 'not_started',
+//                 venue: 6, //id in api.eet.nu
+//                 participants: 
+//                 [
+//                     global.participant1._id,
+//                     global.participant2._id
+//                 ]
+//             })).save();
+            
+//             Promise.all([
+//                 promiseRace
+//             ]).then(function(data){
+//                 global.race._id = data[0]._id;
+//             }).catch(function(){
+//                 reject();
+//             });
+//         }).catch(function() {
+//             reject();
+//         });
+//     }),
+//     clearDb: new Promise(function (resolve, reject) {
+//         this.timeout(30000);
+//         mongoose.connect('');
+//     })
+// };
 
-    //     // clear the database
-    //     co(function*() {
+// // make sure to clear the database after the tests completed
+// before(function(done) {
+//     init.clearDb.then(function() {
+//         Promise.all([
+//             init.promiseUser,
+//             init.promiseAdmin,
+//             init.promiseVenue,
+//             init.promiseRace
+//         ]).then(function() {
+//             done();
+//         });
+//     });
+// });
 
-    //         var dbUrl = 'mongodb://';
-    //         if (config.mongodb.username !== undefined && config.mongodb.password !== undefined) {
-    //             dbUrl += config.mongodb.username + ':' + config.mongodb.password + '@';
-    //         }
-    //         dbUrl += config.mongodb.host + '/' + config.mongodb.database;
+// global.makePostRequest = function (route, data, statusCode, requireLogin, done) {
+//     request(app)
+//         .post(route)
+//         .type('json')
+//         .send(data)
+//         .set('Content-Type', 'application/json')
+//         .set('Authorization', 'Basic ' + btoa(global.admin.local.email + ":" + global.admin.local.password))
+//         .expect(statusCode)
+//         .end(function (err, res) {
+//             if (err) {
+//                 return done(err);
+//             }
 
-    //         // Connection URL
-    //         var db = yield require('mongodb').MongoClient.connect(dbUrl);
+//             done(null, res);
+//         });
+// };
 
-    //         db.collections(function (err, collections) {
-    //             for (var index in collections) {
-    //                 var col = collections[index];
-    //                 if (col.collectionName !== 'identitycounters') {
-    //                     col.drop();
-    //                 }
-    //             }
-    //             resolve();
-    //         });
-    //     }).catch(function (err) {
-    //         console.log(err.stack);
-    //         reject();
-    //     });
-    // })
-}
+// global.makeGetRequest = function (route, statusCode, requireLogin, done) {
+//     request(app)
+//         .get(route)
+//         .type('json')
+//         .set('Content-Type', 'application/json')
+//         .set('Authorization', 'Basic ' + btoa(global.admin.local.email + ":" + global.admin.local.password))
+//         .expect(statusCode)
+//         .end(function (err, res) {
+//             if (err) {
+//                 return done(err);
+//             }
 
+//             done(null, res);
+//         });
+// };
 
-// make sure to clear the database after the tests completed
-before(function(done) {
+// global.makePutRequest = function (route, data, statusCode, requireLogin, done) {
+//     request(app)
+//         .put(route)
+//         .type('json')
+//         .send(data)
+//         .set('Content-Type', 'application/json')
+//         .set('Authorization', 'Basic ' + btoa(global.admin.local.email + ":" + global.admin.local.password))
+//         .expect(statusCode)
+//         .end(function (err, res) {
+//             if (err) {
+//                 return done(err, res);
+//             }
 
-    init.clearDb.then(function() {
-        Promise.all([
-            init.promiseClass,
-            init.promiseGoal,
-            init.promiseUser
-        ]).then(function() {
-            done();
-        });
-    });
+//             done(null, res);
+//         });
+// };
 
-});
+// global.makeDeleteRequest = function (route, statusCode, requireLogin, done) {
+//     request(app)
+//         .del(route)
+//         .type('json')
+//         .set('Content-Type', 'application/json')
+//         .set('Authorization', 'Basic ' + btoa(global.admin.local.email + ":" + global.admin.local.password))
+//         .expect(statusCode)
+//         .end(function (err, res) {
+//             if (err) {
+//                 return done(err);
+//             }
 
-global.makePostRequest = function (route, data, statusCode, requireLogin, done) {
-    request(app)
-        .post(route)
-        .type('json')
-        .send(data)
-        .set('Accept', 'application/json')
-        .set('x-token', requireLogin ? global.user.tokens[0].token : '')
-        .expect(statusCode)
-        .end(function (err, res) {
-            if (err) {
-                return done(err);
-            }
-
-            done(null, res);
-        });
-};
-
-global.makeGetRequest = function (route, statusCode, requireLogin, done) {
-    request(app)
-        .get(route)
-        .type('json')
-        .set('Accept', 'application/json')
-        .set('x-token', requireLogin ? global.user.tokens[0].token : '')
-        .expect(statusCode)
-        .end(function (err, res) {
-            if (err) {
-                return done(err);
-            }
-
-            done(null, res);
-        });
-};
-
-global.makePutRequest = function (route, data, statusCode, requireLogin, done) {
-    request(app)
-        .put(route)
-        .type('json')
-        .send(data)
-        .set('Accept', 'application/json')
-        .set('x-token', requireLogin ? global.user.tokens[0].token : '')
-        .expect(statusCode)
-        .end(function (err, res) {
-            if (err) {
-                return done(err, res);
-            }
-
-            done(null, res);
-        });
-};
-
-global.makeDeleteRequest = function (route, statusCode, requireLogin, done) {
-    request(app)
-        .del(route)
-        .type('json')
-        .set('Accept', 'application/json')
-        .set('x-token', requireLogin ? global.user.tokens[0].token : '')
-        .expect(statusCode)
-        .end(function (err, res) {
-            if (err) {
-                return done(err);
-            }
-
-            done(null, res);
-        });
-};
+//             done(null, res);
+//         });
+// };
