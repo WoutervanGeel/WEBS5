@@ -32,7 +32,7 @@ function init(mongoose)
     };
     
     venueSchema.statics.findByName = function (name, callback) {
-        return this.find({name: name}, callback);
+        return this.findOne({name: name}, callback);
     };
     
     mongoose.model('Venue', venueSchema);
