@@ -78,7 +78,7 @@ function Application(){
                 },
                 method: 'post',
                 data: venue,
-                success: function successmethod(data) {$('#newRaceName').val("");},
+                success: function successmethod(data) {$('#newRaceName').val("");self.getVenues();},
                 failure: function failuremethod(data) {console.log(data)},
             });
         }
@@ -404,12 +404,11 @@ function Application(){
     self.fillVenueList = function(){
         $('#editVenueList').empty();
         for(venue in self.venues){
-            console.log(self.venues[venue]);
             if(self.venues[venue].local == null || self.venues[venue].local == undefined || self.venues[venue].local == false){
                 $('#editVenueList').append('<a href="#" class="list-group-item">X - '+self.venues[venue].name+'</a>').on('click', function(e){
                     e.preventDefault();
                     var name = e.target.innerHTML;
-                    alert("You can only change our venues");
+                    console.log("You can only change our venues");
                     self.selectedEditVenue = null;
                     $('#editVenueName').val("");
                     $('#editVenueCategory').val("");
