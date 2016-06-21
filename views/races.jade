@@ -6,7 +6,7 @@ block content
     h1.
         Race List
     table.table.table-bordered
-        each race, index in results
+        each race, index in results.races
             tr
                 td
                     a(href='/races/'+race.name)= race.name
