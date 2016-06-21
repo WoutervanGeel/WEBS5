@@ -203,7 +203,7 @@ var init = function(){
     initRaces();
 }
 
-var getFilledUsers = function(){
+var fill = function(){
     
 }
 
