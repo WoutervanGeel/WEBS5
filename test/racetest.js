@@ -5,6 +5,7 @@ var _ = require('underscore');
 var async = require('async');
 
 var mongoose = require('mongoose');
+require('../routes/race.js');
 
 var mockgoose = require('mockgoose');
 mockgoose(mongoose);
@@ -14,11 +15,63 @@ var Race = mongoose.model('Race');
 
 var app = require('express')();
 var raceRoute = require('../routes/races')(mongoose);
+
 app.use('/races', raceRoute);
 
-function makeRequest(route, statusCode, done)
+var adminUserData = {
+    name: "admin",
+    group: "admin",
+    local: {
+        email: "admin@administrator.nl",
+        password: "admin"
+    }
+}
+var adminUser = new User(adminUserData);
+var bAuth;
+
+//xhr.setRequestHeader ("Authorization", "Basic " + btoa(username + ":" + password));
+function makeGetRequest(route, statusCode, done)
 {
-	request(app).get(route).expect(statusCode).end(function(err, res)
+	request(app).set("Authorization", "Basic " + bAuth).get(route).expect(statusCode).end(function(err, res)
+    {
+        if(err)
+        { 
+            return done(err);
+        }
+
+        done(null, res);
+    });
+};
+
+function makePutRequest(route, data, statusCode, done)
+{
+	request(app).put(route).send(data).expect(statusCode).end(function(err, res)
+    {
+        if(err)
+        { 
+            return done(err);
+        }
+
+        done(null, res);
+    });
+};
+
+function makePostRequest(route, data, statusCode, done)
+{
+	request(app).post(route).send(data).expect(statusCode).end(function(err, res)
+    {
+        if(err)
+        { 
+            return done(err);
+        }
+
+        done(null, res);
+    });
+};
+
+function makeDeleteRequest(route, statusCode, done)
+{
+	request(app).delete(route).expect(statusCode).end(function(err, res)
     {
         if(err)
         { 
@@ -37,6 +90,15 @@ before(function(done)
 
 describe('Testing /races route', function()
 {
+    before(function(done)
+    {        
+        adminUser.save(function(err, user)
+        {
+            if(err) return done(err);
+            bAuth = btoa(adminUserData.local.email + ":" + adminUserData.local.password);
+            done();
+        });
+    });
     describe('Testing /races GET.', function()
     {
         it('should return a list of races. HTTP CODE = 200', function(done)
@@ -46,21 +108,46 @@ describe('Testing /races route', function()
             ([
                 function(callback)
                 {
+                    //adding races
                     async.parallel
                     ([
-                        
+                        function(callback){
+                            console.log("adding first");
+                            var tempRace = new Race();
+                            tempRace.name = "testRace1";
+                            tempRace.status = "not_started";
+                            tempRace.save(function (error, doc) 
+                            {
+                                if(error) return callback(error);
+                                callback();
+                            });
+                        },
+                        function(callback){
+                            console.log("adding second");
+                            var tempRace = new Race();
+                            tempRace.name = "testRace2";
+                            tempRace.status = "not_started";
+                            tempRace.save(function (error, doc) 
+                            {
+                                if(error) return callback(error);
+                                callback();
+                            });
+                        },
+                        function(callback){
+                            console.log("adding third");
+                            var tempRace = new Race();
+                            tempRace.name = "testRace3";
+                            tempRace.status = "not_started";
+                            tempRace.save(function (error, doc) 
+                            {
+                                if(error) return callback(error);
+                                callback();
+                            });
+                        }
                     ], function(error)
                     {
                         if(error) done(error);
                         else done();
-                    });
-                    testRace1 = new Race();
-                    testRace1.name = "testRace1";
-                    testRace1.status = "not_started";
-                    testRace1.save(function (error, doc) 
-                    {
-                        if(error) return callback(error);
-                        callback();
                     });
                 },
                 function(callback)
@@ -69,26 +156,27 @@ describe('Testing /races route', function()
                     {
                         if (error) return callback(error);
                         databaseRaces = doc;
+                        console.log(doc);
                         callback();
                     });
                 },
                 function(callback)
                 {
-                    var expectedCount = 100;
+                    var expectedCount = 3;
                     
-                    makeRequest('/races', 200, function(err, res)
+                    makeGetRequest('/races', 200, function(err, res)
                     {
                         if(err) return callback(err);
                         
-                        expect(res.body).to.have.property('results');
-                        expect(res.body.results).to.be.an('array');
+                        expect(res.body).to.have.property('races');
+                        expect(res.body.races).to.be.an('array');
                         
                         var actualCounted = 0;
-                        _.each(res.body.results, function(result)
+                        _.each(res.body.races, function(result)
                         {
                             expect(result).to.have.property('name');
                             expect(result.name).to.be.an('string');
-                            expect(result.name).to.equal(databaseVenues[actualCounted].name);
+                            expect(result.name).to.equal(databaseRaces[actualCounted].name);
                             actualCounted++;
                         });
                         
@@ -105,74 +193,144 @@ describe('Testing /races route', function()
             });
         });
     });
-    describe('Testing /races with negative results.', function()
-    {
-        it('should return HTTP 400 if format is not "html" or "json".', function(done)
-        {
-            makeRequest('/races?format=a', 400, function(err, res)
-            {
-                if(err) return done(err);
-                done();
-            });
-        });
-    });
 });
 
 describe('Testing /races/:name route', function()
 {
-    var testVenueData =
-    {
-        "name": "testVenueName",
-        "category": "testVenueCategory"
-    }
-    var testVenue = new Venue(testVenueData);
     var testRaceData =
     {
         "name": 'testRace',
-        "category": "testCategory",
-        "venue": testVenueData
+        "status": "not_started"
     };
-    
     var testRace = new Race(testRaceData);
-    before(function(done)
+    
+    var badRaceData =
     {
-        testVenue.save(function(err, savedVenue)
-        {
-            if(err) return done(err);
-            done();
-        });
-        
+        "status": "not_started"
+    };    
+    
+    var newRaceData = 
+    {
+        "name": "newRace",
+        "status": "not_started"
+    }
+    
+    var editRaceData = 
+    {
+        "name": "editRace",
+        "status": "not_started"
+    }
+    
+    before(function(done)
+    {        
         testRace.save(function(err, savedRace)
         {
             if(err) return done(err);
+            testRaceData._id = savedRace._id;
             done();
         });
     });
-    describe('Testing /races/:name with positive results.', function()
+    
+    describe('Testing /races/:id with positive results. GET', function()
     {
         it('should return Race data.', function(done)
         {
-            makeRequest('/races/testRace', 200, function(err, res)
+            makeGetRequest('/races/'+testRaceData._id, 200, function(err, res)
             {
                 if(err) return done(err);
                 
                 expect(res.body).to.have.property('name');
                 expect(res.body).to.have.property('status');
-                expect(res.body).to.have.property('venue');
                 
                 expect(res.body.name).to.equal(testRace.name);
                 expect(res.body.status).to.equal(testRace.category);
-                expect(res.body.venue).to.equal(testRace.venue);
                 
                 done();
             });
         });
     });
-    describe('Testing /races/:name with negative results.', function()
+    describe('Testing /races/:id with negative results. GET', function()
     {
        it('should return HTTP 404 when no name matches a Race in the database.', function(done)
        {
-           makeRequest('/races/nonexistingrace', 404, function(err, res)
+           makeGetRequest('/races/nonexistingrace', 404, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/:id with positive results. PUT', function()
+    {
+       it('should change racedata from testrace to editRace.', function(done)
+       {
+           makePutRequest('/races/'+testRace._id, editRaceData, 200, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/:id with wrong reference. PUT', function()
+    {
+       it('should return 404.', function(done)
+       {
+           makePutRequest('/races/nonexistingrace', editRaceData, 404, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/:id with negative results. PUT', function()
+    {
+       it('should return 400.', function(done)
+       {
+           makePutRequest('/races/'+testRace._id, badRaceData, 400, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/ with positive results. POST', function()
+    {
+       it('should return 200.', function(done)
+       {
+           makePostRequest('/races/', newRaceData, 200, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/ with negative results. POST', function()
+    {
+       it('should return 400.', function(done)
+       {
+           makePostRequest('/races/', badRaceData, 400, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/ with positive results. DELETE', function()
+    {
+       it('should return 200.', function(done)
+       {
+           makeDeleteRequest('/races/'+testRace._id, 400, function(err, res)
+           {
+               if(err) return done(err);
+               done();
+           });
+       });
+    });
+    describe('Testing /races/ with negative results. DELETE', function()
+    {
+       it('should return 404.', function(done)
+       {
+           makeDeleteRequest('/races/nonexistingrace', 404, function(err, res)
            {
                if(err) return done(err);
                done();

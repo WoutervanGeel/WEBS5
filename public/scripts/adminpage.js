@@ -9,11 +9,13 @@ function Application(){
     self.selectedEditVenue = null;
     self.selectedEditRaceParticipants = [];
     self.userId = '5766047fb52c616831090325';
+    self.bAuth = btoa("admin@account.nl" + ":" + "admin");
+    console.log(self.bAuth);
     
     self.getRaces = function(){
         $.ajax({
-            url: '/races?format=json',
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            url: '/races',
+            beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
             method: 'get',
             success: function successmethod(data) {
                 self.races = data.races;
@@ -25,7 +27,7 @@ function Application(){
     self.getVenues = function(){
         $.ajax({
             url: '/venues?format=json',
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
             method: 'get',
             success: function successmethod(data) {
                 self.venues = data.results;
@@ -49,7 +51,7 @@ function Application(){
             
             $.ajax({
                 url: '/venues?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'post',
                 data: venue,
                 success: function successmethod(data) {
@@ -71,7 +73,7 @@ function Application(){
             
             $.ajax({
                 url: '/races?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'post',
                 data: race,
                 success: function successmethod(data) {
@@ -104,7 +106,7 @@ function Application(){
             
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'post',
                 data: newRace,
                 success: function successmethod(data) {
@@ -125,7 +127,7 @@ function Application(){
         } else {
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'delete',
                 success: function successmethod(data) {
                     console.log("deleted ",data);
@@ -161,7 +163,7 @@ function Application(){
             
             $.ajax({
                 url: '/venues/'+self.selectedEditVenue+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'put',
                 data: newVenue,
                 success: function successmethod(data) {
@@ -183,7 +185,7 @@ function Application(){
         } else {
             $.ajax({
                 url: '/venues/'+self.selectedEditVenue+'?format=json',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'delete',
                 success: function successmethod(data) {
                     console.log("deleted ",data);
@@ -209,7 +211,7 @@ function Application(){
             
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'/participants',
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'post',
                 data: sendData,
                 success: function successmethod(data) {
@@ -228,7 +230,7 @@ function Application(){
         } else {  
             $.ajax({
                 url: '/races/'+self.selectedEditRace+'/participants/'+self.userId,
-                beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
                 method: 'delete',
                 success: function successmethod(data) {
                     alert("Left race: " + self.selectedEditRace+".");
@@ -243,7 +245,7 @@ function Application(){
     self.getParticipants = function(){
         $.ajax({
             url: '/races/'+self.selectedEditRace,
-            beforeSend: function(xhr){xhr.setRequestHeader('Auth', 'admin');},
+            beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Basic '+ self.bAuth);},
             method: 'get',
             success: function successmethod(data) {
                 self.selectedEditRaceParticipants = data.participants;
