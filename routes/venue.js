@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var async = require('async');
 var request = require('request');
 var _ = require('underscore');
 var Response = require('../config/responses');
@@ -34,31 +35,90 @@ function getAll(req, res, next) {
             limit = q_limit;
     }
 
-    Venue.find(query).limit(limit).skip(limit * page).sort({index:'ascending'}).exec(function(err, docs)
-    {
-        var results =
+    var combinedVenues = [];
+    async.parallel
+    ([
+        function(callback)
         {
-            limit: limit,
-            page: page,
-            count: docs.length,
-            results: []
-        };
+            var api_url = 'https://api.eet.nu/venues';
+            if(req.query.name)
+                api_url = 'https://api.eet.nu/venues?query='+req.query.name;
+            request(api_url, function(error, response, body)
+            {
+                if(error)
+                    return callback(error);
 
-        if(err)
+                var externalVenues = JSON.parse(body);
+
+                _.each(externalVenues.results, function(result)
+                {
+                    var venue = {};
+                    venue.name = result.name;
+                    venue.category = result.category;
+                    venue.local = false
+
+                    if(!(venue.name in combinedVenues))
+                        combinedVenues[venue.name] = venue;
+                });
+                return callback();
+            });
+        },
+        function(callback)
+        {
+            Venue.find(query).sort({index:'ascending'}).exec(function(err, docs)
+            {
+                if(err)
+                {
+                    Response.setServerError(req,res);
+                    return next();
+                }
+
+                _.every(docs, function(doc)
+                {
+                    combinedVenues[doc.name] = {
+                        name: doc.name,
+                        category: doc.category,
+                        local: true
+                    };
+                    return true;
+                });
+
+                return callback();
+            });
+
+        }
+    ], function(error) {
+
+        if(error)
         {
             Response.setServerError(req,res);
             return next();
         }
 
-        _.every(docs, function(doc)
+        // omzetten naar object
+        var venuesResult = [];
+        for (var k in combinedVenues) {
+            if (combinedVenues.hasOwnProperty(k)) {
+                if(!req.query.category || combinedVenues[k].category.toLowerCase().indexOf(req.query.category.toLowerCase()) > -1) {
+                    venuesResult.push({
+                        name: combinedVenues[k].name,
+                        category: combinedVenues[k].category
+                    });
+                }
+            }
+        }
+
+        // sort & limit
+        _.sortBy(venuesResult, function(o) { return o.name; })
+        venuesResult = venuesResult.slice(page*limit, (page*limit)+limit);
+
+        var results =
         {
-            results.results.push
-            ({
-                name: doc.name,
-                category: doc.category
-            });
-            return true;
-        });
+            limit: limit,
+            page: page,
+            count: venuesResult.length,
+            results: venuesResult
+        };
 
         res.status(200);
         if(Response.requestJson(req)){

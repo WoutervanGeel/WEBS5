@@ -38,4 +38,5 @@ function init(mongoose)
     mongoose.model('Venue', venueSchema);
 };
 
+
 module.exports = init;
