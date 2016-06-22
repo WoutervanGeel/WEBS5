@@ -1,0 +1,20 @@
+extends layout
+
+block content
+    a(href='/races').
+        go to races
+    h1
+        Participants
+    table.table.table-bordered
+        tr
+            th= "Id"
+            td= id
+        tr
+            th= "Winner"
+            td= winner
+        tr
+            th= "Venues"
+            td
+                each venue in venues
+                    div= venue
+

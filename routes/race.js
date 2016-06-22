@@ -75,13 +75,21 @@ function getOneRace(req, res, next)
             Response.setServerError(req,res);
             return next();
         }
-		
+
+        var results =
+        {
+            name: foundRace.name,
+            status: foundRace.status,
+            venues: foundRace.venues,
+            participants: foundRace.participants
+        };
+
 		res.status(200);
 		if(Response.requestJson(req))
 		{
-            res.json(foundRace);
+            res.json(results);
 		} else {
-			res.render('singleRace', { response: foundRace});
+			res.render('singleRace', { response: results});
 		}
 	});
 }
@@ -599,32 +607,58 @@ function addParticipant(req, res, next) {
             return next();
         }
 
-        if(_.contains(race.participants, newParticipantId)){
+        var participant;
+        _.each(race.participants, function(result)
+        {
+            if(result.id == newParticipantId)
+            {
+                participant = result;
+            }
+        });
+
+        if (participant) {
             Response.setCustom(req,res, 400, 'User is already participating in this race.');
             return next();
         }
 
-        var participant = {
-            id: newParticipantId,
-            winner: false,
-            venues: []
-        };
+        User.findOne({_id: newParticipantId}, function(err, user) {
 
-        race.participants.push(participant);
-
-        race.save(function(error) {
-            if (error) {
+            if (err) {
                 Response.setServerError(req, res);
                 return next();
-            } else {
-                res.status(200);
-                if(Response.requestJson(req)){
-                    res.json(participant);
-                } else {
-                    res.render('raceParticipant', participant);
-                }
             }
+
+            if (user == null) {
+                Response.setCustom(req,res, 400, 'User Not Found');
+                return next();
+            }
+            else {
+                var participant = {
+                    id: newParticipantId,
+                    winner: false,
+                    venues: []
+                };
+
+                race.participants.push(participant);
+
+                race.save(function (error) {
+                    if (error) {
+                        Response.setServerError(req, res);
+                        return next();
+                    } else {
+                        res.status(200);
+                        if (Response.requestJson(req)) {
+                            res.json(participant);
+                        } else {
+                            res.render('raceParticipant', participant);
+                        }
+                    }
+                });
+
+            }
+
         });
+
     });
 }
 
