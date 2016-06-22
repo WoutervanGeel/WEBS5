@@ -46,7 +46,7 @@ function init(mongoose)
     
     raceSchema.statics.findByName = function (name, callback) {
         return this.findOne({name: name}, function(err, race){
-            if(race == null){
+            if(race == null || race == undefined){
                 callback(err, race);
             } else {
                 var resultRace = 
