@@ -101,12 +101,11 @@ function addRace(req, res, next)
                 racelist.push(race);
                 return true;
             });
-
             if (racelist.length < 5) {
                 var race = new Race();
                 race.name = req.body.name;
                 race.status = "not_started";
-                race.venues = {};
+                race.venues = [];
 
                 race.save(function (error, savedRace) {
 
@@ -128,8 +127,9 @@ function addRace(req, res, next)
                         res.render("singleRace", { response: result });
                 });
 
+            } else {
+                Response.setTooManyRaces(req,res);
             }
-            // todo: foutmelding bij meer dan 5 races
 
         });
     }
