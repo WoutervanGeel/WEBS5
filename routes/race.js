@@ -545,7 +545,7 @@ router.delete('/:name/venues/:id', passport.authenticate('admin', {"session": fa
 router.get('/:name/participants', passport.authenticate('user', {"session": false }), getParticipants);
 router.post('/:name/participants', passport.authenticate('admin', {"session": false }), addParticipant);
 router.get('/:name/participants/:userId', passport.authenticate('user', {"session": false }), getParticipant);
-router.put('/:name/participants/:userId', passport.authenticate('user', {"session": false }), editParticipant); // todo
+router.put('/:name/participants/:userId', passport.authenticate('admin', {"session": false }), editParticipant); // todo
 router.delete('/:name/participants/:userId', passport.authenticate('admin', {"session": false }), removeParticipant);
 
 /* EXPORT FUNCTION */
