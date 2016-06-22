@@ -7,6 +7,7 @@ var passport = require('passport');
 
 var Race;
 var Venue;
+var User;
 
 var api_url = 'https://api.eet.nu/venues';
 
@@ -90,23 +91,20 @@ function addRace(req, res, next)
     if(req.body.name != null) {
 
         Race.find({}, function (err, races) {
-            var racelist = [];
 
             if(err) {
                 Response.setServerError(req,res);
                 return next();
             }
 
-            _.every(races, function (race) {
-                racelist.push(race);
-                return true;
-            });
+            // todo: check if name already exists
 
-            if (racelist.length < 5) {
+            if (races.length < 5) {
+
                 var race = new Race();
                 race.name = req.body.name;
                 race.status = "not_started";
-                race.venues = {};
+                race.venues = [];
 
                 race.save(function (error, savedRace) {
 
@@ -118,7 +116,8 @@ function addRace(req, res, next)
                     var result =
                     {
                         name: savedRace.name,
-                        status: savedRace.status
+                        status: savedRace.status,
+                        venues: savedRace.venues
                     };
 
                     res.status(200);
@@ -155,8 +154,7 @@ function deleteRace(req, res, next)
 
 function editRace(req, res, next) {
 
-    if(req.body.name != null) {
-        console.log("race",req.params.name);
+    if(req.body.name != null || req.body.status != null) {
             Race.findOne({ name: req.params.name }, function (err, race){
                 console.log("race:",race);
                 if(race == null)
@@ -170,10 +168,13 @@ function editRace(req, res, next) {
                     return next();
                 }
 
-                race.name = req.body.name;
+                if(req.body.name) {
+                    race.name = req.body.name;
+                }
                 if(req.body.status == "started") {
                     race.status = req.body.status;
                 }
+
                 race.save(function (err)
                 {
                     if(err) {
@@ -277,7 +278,6 @@ function addVenue(req, res, next)
                         doc.save();
 
                         res.status(200);
-                        console.log('added')
                         if (Response.requestJson(req)) {
                             res.json(doc.venues);
                         } else {
@@ -344,7 +344,6 @@ function removeVenue(req, res, next)
 /* PARTICIPANTS */
 
 function getParticipants(req, res, next) {
-    var participants = {};
     var name = req.params.name;
 
     Race.findOne({name: name}, function(err, race) {
@@ -359,8 +358,36 @@ function getParticipants(req, res, next) {
             return next();
         }
 
-        res.status(200);
-        res.json(race.participants);
+        var userIds = [];
+        _.each(race.participants, function(result)
+        {
+            userIds.push(result.id);
+        });
+
+        User.findOne({'_id': { $in: userIds}}, function(err, users) {
+
+            if (race == null) {
+                Response.setNotFound(req, res); // todo: race not found
+                return next();
+            }
+
+            if (err) {
+                Response.setServerError(req, res);
+                return next();
+            }
+
+            var result = [];
+            _.each(users, function(user)
+            {
+                result.push({
+                    id: user._id,
+                    name: user.name
+                });
+            });
+
+            res.status(200);
+            res.json(result);
+        });
     });
 }
 
@@ -407,6 +434,7 @@ function removeParticipant(req, res, next) {
 function editParticipant(req, res, next) {
     var name = req.params.name;
     var participantId = req.params.userId;
+    //noinspection JSUnresolvedVariable
     var venueId = req.body.venueId;
 
     Race.findOne({name: name}, function(err, race){
@@ -422,6 +450,13 @@ function editParticipant(req, res, next) {
         }
 
         if(race.status == "ended")
+        {
+            // todo: correct error
+            Response.setNotFound(req,res);
+            return next();
+        }
+
+        if(race.status == "not_started")
         {
             // todo: correct error
             Response.setNotFound(req,res);
@@ -570,5 +605,6 @@ module.exports = function(mongoose)
 {
 	Race = mongoose.model('Race');
     Venue = mongoose.model('Venue');
+    User = mongoose.model('User');
 	return router;
 };

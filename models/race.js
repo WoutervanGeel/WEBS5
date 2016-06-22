@@ -15,7 +15,7 @@ function init(mongoose)
             type: Boolean,
             required: [true, 'Winner is required.'],
             default: false
-        },
+        }
     });
 
     var raceSchema = new Schema
