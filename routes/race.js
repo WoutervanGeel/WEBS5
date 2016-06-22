@@ -365,7 +365,7 @@ function getParticipants(req, res, next) {
             userIds.push(result.id);
         });
 
-        User.findOne({'_id': { $in: userIds}}, function(err, users) {
+        User.find({'_id': { $in: userIds}}, function(err, users) {
 
             if (race == null) {
                 Response.setNotFound(req, res); // todo: race not found
@@ -378,11 +378,11 @@ function getParticipants(req, res, next) {
             }
 
             var result = [];
-            _.each(users, function(user)
+            _.each(users, function(userItem)
             {
                 result.push({
-                    id: user._id,
-                    name: user.name
+                    id: userItem._id,
+                    name: userItem.name
                 });
             });
 
