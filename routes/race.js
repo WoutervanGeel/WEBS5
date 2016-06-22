@@ -421,6 +421,13 @@ function editParticipant(req, res, next) {
             return next();
         }
 
+        if(race.status == "ended")
+        {
+            // todo: correct error
+            Response.setNotFound(req,res);
+            return next();
+        }
+
         var participant;
         _.each(race.participants, function(result)
         {
@@ -430,25 +437,34 @@ function editParticipant(req, res, next) {
             }
         });
 
-        if(!participant) {
-            Response.setNotFound(req, res);
-            return next();
-        }
-        else {
+        if (participant) {
             var index = participant.venues.indexOf(venueId);
-            console.log("o2k");
             if (index == -1) {
 
-                // todo: validate venue id
-                participant.venues.push(venueId);
-                race.save();
+                var venueIndex = race.venues.indexOf(venueId);
+                if (venueIndex == -1) {
+                    // todo: error venue not in Race
+                    Response.setNotFound(req, res);
+                    return next();
+                }
 
-                //
+                participant.venues.push(venueId);
+
+                // check winner
+                if (race.venues.length == participant.venues.length) {
+                    participant.winner = true;
+                    race.status = "ended";
+                }
+
+                race.save();
 
                 // todo: correct response
                 res.status(200);
                 res.json(participant);
             }
+        } else {
+            Response.setNotFound(req, res);
+            return next();
         }
     });
 }
@@ -545,7 +561,7 @@ router.delete('/:name/venues/:id', passport.authenticate('admin', {"session": fa
 router.get('/:name/participants', passport.authenticate('user', {"session": false }), getParticipants);
 router.post('/:name/participants', passport.authenticate('admin', {"session": false }), addParticipant);
 router.get('/:name/participants/:userId', passport.authenticate('user', {"session": false }), getParticipant);
-router.put('/:name/participants/:userId', passport.authenticate('user', {"session": false }), editParticipant); // todo
+router.put('/:name/participants/:userId', passport.authenticate('user', {"session": false }), editParticipant);
 router.delete('/:name/participants/:userId', passport.authenticate('admin', {"session": false }), removeParticipant);
 
 /* EXPORT FUNCTION */
