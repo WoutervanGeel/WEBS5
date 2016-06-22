@@ -6,9 +6,13 @@ var Response = require('../config/responses');
 var passport = require('passport');
 
 var Race;
+var Venue;
+
+var api_url = 'https://api.eet.nu/venues';
 
 /* REQUEST HANDLER FUNCTIONS */
 
+/* RACES */
 function getRaces(req, res, next)
 {
     var query = {};
@@ -41,7 +45,7 @@ function getRaces(req, res, next)
             ({
                 name: race.name,
                 status: race.status,
-                venue: race.venue
+                venues: race.venues
             });
             return true;
         });
@@ -57,7 +61,7 @@ function getRaces(req, res, next)
 
 function getOneRace(req, res, next)
 {
-	Race.findByName(req.params.name, function(err, foundRace)
+	Race.findOne({ name: req.params.name }, function(err, foundRace)
 	{
 		if(foundRace == null)
         {
@@ -102,7 +106,7 @@ function addRace(req, res, next)
                 var race = new Race();
                 race.name = req.body.name;
                 race.status = "not_started";
-                race.venue = req.body.venue; // todo: venues verplicht?
+                race.venues = {};
 
                 race.save(function (error, savedRace) {
 
@@ -125,6 +129,7 @@ function addRace(req, res, next)
                 });
 
             }
+            // todo: foutmelding bij meer dan 5 races
 
         });
     }
@@ -166,8 +171,9 @@ function editRace(req, res, next) {
                 }
 
                 race.name = req.body.name;
-                race.status = race.status;
-                race.venue = req.body.venue; // todo: venues verplicht?
+                if(req.body.status == "started") {
+                    race.status = req.body.status;
+                }
                 race.save(function (err)
                 {
                     if(err) {
@@ -200,61 +206,259 @@ function editRace(req, res, next) {
     }
 }
 
-function getParticipants(req, res, next) {
-    var filter = {};
-    var participants = [];
-    var name = req.params.name;
-    Race.getParticipants(name, function(err, data){
-        participants = data.participants;
-    
-        res.json({
-            participants: participants
+/* VENUES */
+
+function getVenues(req, res, next) {
+    var race = req.params.name;
+
+    Race.findOne({ name: race }, function(err, doc)
+    {
+        if(doc == null)
+        {
+            Response.setNotFound(req,res);
+            return next();
+        }
+
+        if(err)
+        {
+            Response.setServerError(req,res);
+            return next();
+        }
+
+        res.status(200);
+        if(Response.requestJson(req))
+        {
+            res.json(doc.venues);
+        } else {
+            res.render('arrayList', { arr: doc.venues}); // todo: custom layout
+        }
+    });
+}
+
+function addVenue(req, res, next)
+{
+    var race = req.params.name;
+    var venueId = req.body.id;
+    if(venueId != null) {
+        Race.findOne({name: race}, function (err, doc) {
+            if (doc == null) {
+                Response.setNotFound(req, res);
+                return next();
+            }
+
+            if (err) {
+                Response.setServerError(req, res);
+                return next();
+            }
+
+            if (doc.venues.indexOf(venueId) > -1) {
+                return next();
+                // todo: error already in list
+            }
+
+            Venue.findOne({id: venueId}, function (err, venue) {
+                if (venue == null) {
+
+                    request(api_url + "/" + venueId, function (error, response, body) {
+                        console.log(venueId);
+                        if (error) {
+                            Response.setServerError(req, res);
+                            return next();
+                        }
+
+                        var jsonObj = JSON.parse(body);
+
+                        if (!jsonObj.id) {
+                            Response.setNotFound(req, res);
+                            return next();
+                        }
+
+                        doc.venues.push(venueId);
+                        doc.save();
+
+                        res.status(200);
+                        console.log('added')
+                        if (Response.requestJson(req)) {
+                            res.json(doc.venues);
+                        } else {
+                            res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                        }
+                    });
+                }
+                else {
+                    if (err) {
+                        Response.setServerError(req, res);
+                        return next();
+                    }
+                    doc.venues.push(venueId);
+                    doc.save();
+
+                    res.status(200);
+                    if (Response.requestJson(req)) {
+                        res.json(doc.venues);
+                    } else {
+                        res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                    }
+                }
+            });
         });
+    }
+    else
+    {
+        Response.setMissingFields(req,res);
+    }
+
+}
+
+function removeVenue(req, res, next)
+{
+    var race = req.params.name;
+    var venueId = req.params.id;
+
+    Race.findOne({name: race}, function (err, doc) {
+        if (doc == null) {
+            Response.setNotFound(req, res); // todo: race not found
+            return next();
+        }
+
+        if (err) {
+            Response.setServerError(req, res);
+            return next();
+        }
+
+        var index = doc.venues.indexOf(venueId);
+
+        if (index > -1) {
+            doc.venues.splice(index, 1);
+            doc.save();
+            Response.showDeleteSuccess(req,res, venueId);
+        }
+        else {
+            Response.setNotFound(req, res);
+            return next();
+        }
+    });
+
+}
+
+/* PARTICIPANTS */
+
+function getParticipants(req, res, next) {
+    var participants = {};
+    var name = req.params.name;
+
+    Race.findOne({name: name}, function(err, race) {
+
+        if (race == null) {
+            Response.setNotFound(req, res); // todo: race not found
+            return next();
+        }
+
+        if (err) {
+            Response.setServerError(req, res);
+            return next();
+        }
+
+        res.status(200);
+        res.json(race.participants);
     });
 }
 
 function removeParticipant(req, res, next) {
-    var filter = {};
+    var name = req.params.name;
     var participantId = req.params.userId;
-    var raceName = req.params.name;
-    
-    Race.find({name: raceName}, function(err, race) {
+
+    Race.findOne({name: name}, function(err, race){
+
         if(race == null)
         {
+            Response.setNotFound(req,res);
+            return next();
+        }
+
+        if(err)
+        {
+            Response.setServerError(req,res);
+            return next();
+        }
+
+        var participant;
+        _.each(race.participants, function(result)
+        {
+            if(result.id == participantId)
+            {
+                participant = result;
+            }
+        });
+
+        if(!participant) {
+            Response.setNotFound(req, res);
+            return next();
+        }
+        else {
+            participant.remove();
+            race.save();
+
+            Response.showDeleteSuccess(req,res, participantId)
+        }
+    });
+}
+
+function editParticipant(req, res, next) {
+    var name = req.params.name;
+    var participantId = req.params.userId;
+    var venueId = req.body.venueId;
+
+    Race.findOne({name: name}, function(err, race){
+        if(race == null)
+        {
+            Response.setNotFound(req,res);
             return next();
         }
         if(err)
-        { 
-            err = new Error();
-            err.status = 500;
-            err.message = 'Internal Server Error';
-            return next(err);
+        {
+            Response.setServerError(req,res);
+            return next();
         }
-        
-        if(_.contains(race[0].participants, participantId)){
-            newParticipantList = _.without(race[0].participants, participantId);
-            race[0].participants = newParticipantList;
-            race[0].save(function(error, savedRace) {
-                if(error){
-                    res.status(400);
-                    res.json(error);
-                } else {
-                    res.status(200);
-                    res.json(savedRace);
-                }
-            });
-        } else {
-            res.status(400);
-            res.json('User is not participating in this race.');
+
+        var participant;
+        _.each(race.participants, function(result)
+        {
+            if(result.id == participantId)
+            {
+                participant = result;
+            }
+        });
+
+        if(!participant) {
+            Response.setNotFound(req, res);
+            return next();
+        }
+        else {
+            var index = participant.venues.indexOf(venueId);
+            console.log("o2k");
+            if (index == -1) {
+
+                // todo: validate venue id
+                participant.venues.push(venueId);
+                race.save();
+
+                //
+
+                // todo: correct response
+                res.status(200);
+                res.json(participant);
+            }
         }
     });
 }
 
 function getParticipant(req, res, next) {
-    var filter = {};
     var name = req.params.name;
     var participantId = req.params.userId;
-    Race.find({name: name}, function(err, race){
+
+    Race.findOne({name: name}, function(err, race){
+
         if(race == null)
         {
             Response.setNotFound(req,res);
@@ -266,53 +470,62 @@ function getParticipant(req, res, next) {
             Response.setServerError(req,res);
             return next();
         }
-        
-        if(_.contains(race[0].participants, participantId)){
-            participant = _.where(race[0].participants, participantId)[0];
-            res.status(200);
-            res.json({userId: participant});
-        } else {
-            Response.setNotFound(req,res);
+
+        var participant;
+        _.each(race.participants, function(result)
+        {
+            if(result.id == participantId)
+            {
+                participant = result;
+            }
+        });
+
+        if(!participant) {
+            Response.setNotFound(req, res);
             return next();
+        }
+        else {
+            res.status(200);
+            res.json(participant); // todo: uniform result
         }
     });
 }
 
 function addParticipant(req, res, next) {
-    console.log("adding participang");
-    var filter = {};
+
     var newParticipantId = req.body.userId;
     var raceName = req.params.name;
-    console.log(req.body.userId);
-    console.log(raceName);
     
     Race.findOne({name: raceName}, function(err, race) {
-        if(race == null)
-        {
+
+        if (race == null) {
+            Response.setNotFound(req, res);  // todo: race not found
             return next();
         }
-        if(err)
-        { 
-            err = new Error();
-            err.status = 500;
-            err.message = 'Internal Server Error';
-            return next(err);
+
+        if (err) {
+            Response.setServerError(req, res);
+            return next();
         }
-        
+
         if(_.contains(race.participants, newParticipantId)){
             res.status(400);
             res.json('User is already participating in this race.');
-            return next(err);
+            return next(err); // todo: uniform format
         }
 
-        race.participants.push(newParticipantId);
+        race.participants.push({
+            id: newParticipantId,
+            venues: []
+        });
+
         race.save(function(error, savedRace) {
-            if(error){
-                res.status(400);
-                res.json(error);
+            if (error) {
+                Response.setServerError(req, res);
+                return next();
             } else {
                 res.status(200);
-                res.json(savedRace);
+                res.json(savedRace); // todo: show user
             }
         });
     });
@@ -324,16 +537,21 @@ router.get('/', passport.authenticate('user', {"session": false }), getRaces);
 router.get('/:name', passport.authenticate('user', {"session": false }), getOneRace);
 router.put('/:name', passport.authenticate('admin', {"session": false }), editRace);
 router.delete('/:name', passport.authenticate('admin', {"session": false }), deleteRace);
+
+router.get('/:name/venues', passport.authenticate('user', {"session": false }), getVenues);
+router.post('/:name/venues', passport.authenticate('admin', {"session": false }), addVenue);
+router.delete('/:name/venues/:id', passport.authenticate('admin', {"session": false }), removeVenue);
+
 router.get('/:name/participants', passport.authenticate('user', {"session": false }), getParticipants);
 router.post('/:name/participants', passport.authenticate('admin', {"session": false }), addParticipant);
 router.get('/:name/participants/:userId', passport.authenticate('user', {"session": false }), getParticipant);
+router.put('/:name/participants/:userId', passport.authenticate('user', {"session": false }), editParticipant); // todo
 router.delete('/:name/participants/:userId', passport.authenticate('admin', {"session": false }), removeParticipant);
 
 /* EXPORT FUNCTION */
 
-module.exports = function(mongoose, mapper)
+module.exports = function(mongoose)
 {
-    //DataMapper = mapper;
 	Race = mongoose.model('Race');
     Venue = mongoose.model('Venue');
 	return router;

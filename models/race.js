@@ -1,6 +1,23 @@
 function init(mongoose)
 {
     var Schema = mongoose.Schema;
+
+    var Participant = new Schema({
+        id: {
+            type: String,
+            required: [true, 'Id is required.']
+        },
+        venues: [{
+            type: String,
+            required: [true, 'Venues is required.']
+        }],
+        winner: {
+            type: Boolean,
+            required: [true, 'Winner is required.'],
+            default: false
+        },
+    });
+
     var raceSchema = new Schema
     ({
         name:
@@ -15,18 +32,15 @@ function init(mongoose)
             enum: ['not_started', 'started', 'ended'],
             required: [true, 'Status is required.']
         },
-        venue: {
-            type: String,
-            ref: "Venue",
-            required: false,
-            default: null
-        }, 
-        participants: {
+        venues: {
             type: [{
                 type: String,
-                ref: "User",
-                required: [true, 'User Id is required.']
+                ref: "Venue",
+                required: true
             }]
+        },
+        participants: {
+                type: [Participant]
         }
     });
     
@@ -40,7 +54,7 @@ function init(mongoose)
                     name: race.name,
                     participants: [],
                     status: race.status,
-                    venue: null
+                    venues: null
                 }
                 if(race.venue == undefined || race.venue == null){
                     if(race.participants.length > 0){

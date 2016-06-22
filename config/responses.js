@@ -48,6 +48,21 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
+    // venue not found
+    setNoVenueFound: function(req, res) {
+
+        var result = {
+            status  : 404,
+            message : 'Venue don\'t exists'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
     // internal error
     setServerError: function(req, res) {
 

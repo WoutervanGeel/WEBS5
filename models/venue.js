@@ -9,10 +9,6 @@ function init(mongoose)
             type: String,
             required: [true, 'Id is required.']
         },
-        index:
-        {
-            type: Number
-        },
         name:
         {
             type: String,
@@ -21,10 +17,6 @@ function init(mongoose)
         category: 
         {
             type: String
-        },
-        isMapped:
-        {
-            type: Boolean
         }
     });
     
