@@ -92,6 +92,18 @@ module.exports = {
         else
             res.render("notify", { message: result.message });
     },
+    
+    setTooManyRaces: function(req, res) {
 
-   
+        var result = {
+            status  : 400,
+            message : 'There are already 5 races.'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    }
 };

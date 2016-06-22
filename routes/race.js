@@ -127,8 +127,9 @@ function addRace(req, res, next)
                         res.render("singleRace", { response: result });
                 });
 
+            } else {
+                Response.setTooManyRaces(req,res);
             }
-            // todo: foutmelding bij meer dan 5 races
 
         });
     }
