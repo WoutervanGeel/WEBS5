@@ -7,7 +7,9 @@ function Application(){
     self.races = [];
     self.selectedEditRace = null;
     self.selectedEditVenue = null;
+    self.selectedEditRaceVenue = null;
     self.selectedEditRaceParticipants = [];
+    self.visitedVenues = [];
     self.page = 0;
     self.venueFilter = '';
 
@@ -15,7 +17,8 @@ function Application(){
         headerkey: "Authorization",
         userId: "57668fa0758a5e643374e399",
         admin: "Basic YWRtaW5AYWNjb3VudC5ubDphZG1pbg==",
-        user: "Basic dXNlckBhY2NvdW50Lm5sOnVzZXI="
+        user: "Basic dXNlckBhY2NvdW50Lm5sOnVzZXI=",
+        name: "Dirk van Neerpelt"
     }
     self.datatype = {
         headerkey: "Content-Type",
@@ -284,6 +287,66 @@ function Application(){
         });
     }
     
+    self.getVisitedVenues = function(){
+        if(self.selectedEditRace == null){
+            alert("no race selected");
+        } else if(!self.getIsJoined){
+            console.log("you havent joined this race");
+        } else {         
+            $.ajax({
+                url: '/races/'+self.selectedEditRace+'/participants/'+self.userdata.userId,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                },
+                method: 'get',
+                success: function successmethod(data) {
+                    self.visitedVenues = data.venues;
+                    self.fillVisitedVenues();
+                },
+                failure: function failuremethod(data) {
+                    console.log(data);
+                },
+            });
+        }
+    }
+    
+    self.visitVenue = function(){
+        if(self.selectedEditRace == null){
+            alert("no race selected");
+        } else if(self.selectedEditRaceVenue == null){
+            alert("no venue selected to visit");
+        } else {
+            
+            var sendData = {
+                venueId: self.selectedEditRaceVenue.id
+            }
+            
+            $.ajax({
+                url: '/races/'+self.selectedEditRace+'/participants/'+self.userdata.userId,
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader(self.userdata.headerkey, self.userdata.admin);
+                },
+                method: 'post',
+                data: sendData,
+                success: function successmethod(data) {
+                    self.getVisitedVenues();
+                },
+                failure: function failuremethod(data) {
+                    console.log(data);
+                },
+            });
+        }
+    }
+    
+    self.getIsJoined = function(){
+        for(participant in self.selectedEditRaceParticipants){
+            if(self.selectedEditRaceParticipants[participant].name === self.userdata.name){
+                return true;
+            }
+        }
+        return false;
+    }
+    
     self.getRaceByName = function(name){
         for(race in self.races){
             if(self.races[race].name == name){
@@ -309,6 +372,7 @@ function Application(){
             var name = e.target.innerHTML;
             var venue = self.getRaceByName(name).venue;
             self.selectedEditRace = name;
+            self.getVisitedVenues();
             $('#editRaceName').val(name);
             $('#editRaceVenue').val(venue);
         });
@@ -375,6 +439,10 @@ function Application(){
            self.venueFilter = $('#venueFilter').val(); 
            self.getVenues();
         });
+        
+        $('#visitVenueButton').on('click', function(e){
+            self.visitVenue();
+        });
 
         self.onclickRacesButtons();
     }
@@ -390,6 +458,15 @@ function Application(){
                 self.getParticipants();
                 $('#editRaceName').val(name);
                 $('#editRaceVenue').val(venue);
+            });
+        }
+    }
+    
+    self.fillEditRaceVenueList = function(){
+        $('#editRaceVenueList').empty();
+        for(venue in self.selectedEditRace.venues){
+            $('#editRaceVenueList').append('<a href="#" class="list-group-item">'+self.selectedEditRace.venues[venue]+'</a>').on('click', function(e){
+                self.selectedEditRaceVenue = self.getRaceVenueByName(self.selectedEditRace.venues[venue]);
             });
         }
     }
@@ -423,6 +500,13 @@ function Application(){
                     $('#editVenueCategory').val(category);
                 });
             }
+        }
+    }
+    
+    self.fillVisitedVenues = function(){
+        $('#visitedVenuesList').empty();
+        for(venue in self.visitedVenues){
+            $('#visitedVenuesList').append('<li class="#" class="list-group-item">'+self.visitedVenues[venue]+'</li>');
         }
     }
     
