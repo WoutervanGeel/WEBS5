@@ -48,7 +48,8 @@ block content
                   option= null
                   each venue, v in results.venues
                     option= venue.name
-            button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Add this Venue
+            button#editRaceAddVenueButton.btn.btn-warning.btn-lg(type='submit') Add this Venue
+            button#visitVenueButton.btn.btn-primary.btn-lg(type='submit') visit this venue
             hr
         div.col-md-4
           h1
@@ -60,9 +61,9 @@ block content
             span
             |  Visited venues
 
-          div#visitedVenuesList.list-group
+          ul#visitedVenuesList.list-group
               each race, i in results.races
-                  a.list-group-item(href='#')= race.name
+                  li.list-group-item(href='#')= race.name
         div.col-md-4
           h1
             span
