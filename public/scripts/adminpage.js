@@ -329,6 +329,7 @@ function Application(){
                     success: function successmethod(data) {
                         $('#editRaceVenueInput').val("");
                         self.getRaces();
+                        self.fillEditRaceVenueList();
                     },
                     failure: function failuremethod(data) {console.log(data)},
                 });
@@ -450,6 +451,7 @@ function Application(){
         
         $('#editRaceAddVenueButton').on('click', function(e){
            e.preventDefault();
+           console.log("adding venue");
            self.addVenueToRace();
         });
         
