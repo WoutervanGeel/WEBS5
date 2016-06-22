@@ -277,7 +277,6 @@ function editVenue(req, res, next) {
                     venue.name = req.body.name;
                     venue.category = req.body.category;
                     venue.id = req.params.id;
-                    venue.local = true;
                     venue.save(function(error, savedVenue)
                     {
                         if(error) {
@@ -340,7 +339,7 @@ function editVenue(req, res, next) {
 router.get('/', passport.authenticate('user', { "session": false }), getAll);
 router.get('/:id', passport.authenticate('user', { "session": false }), getVenue);
 router.post('/', passport.authenticate('admin', { "session": false }), addVenue);
-router.put('/:id', passport.authenticate('admin', { "session": false }), editVenue); //todo
+router.put('/:id', passport.authenticate('admin', { "session": false }), editVenue);
 router.delete('/:id', passport.authenticate('admin', { "session": false }), deleteVenue);
 
 /* EXPORT FUNCTION */
