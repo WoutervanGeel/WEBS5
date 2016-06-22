@@ -1,0 +1,10 @@
+extends layout
+
+block content
+    h1.
+        Race List
+    table.table.table-bordered
+        each race, index in arrList
+            tr
+                td
+                    a(href='/races/'+race.name)= race.name

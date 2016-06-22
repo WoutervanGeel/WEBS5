@@ -48,6 +48,21 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
+    // venue not found
+    setNoVenueFound: function(req, res) {
+
+        var result = {
+            status  : 404,
+            message : 'Venue don\'t exists'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
     // internal error
     setServerError: function(req, res) {
 
@@ -77,6 +92,18 @@ module.exports = {
         else
             res.render("notify", { message: result.message });
     },
+    
+    setTooManyRaces: function(req, res) {
 
-   
+        var result = {
+            status  : 400,
+            message : 'There are already 5 races.'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    }
 };
