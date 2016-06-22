@@ -75,13 +75,21 @@ function getOneRace(req, res, next)
             Response.setServerError(req,res);
             return next();
         }
-		
+
+        var results =
+        {
+            name: foundRace.name,
+            status: foundRace.status,
+            venues: foundRace.venues,
+            participants: foundRace.participants
+        };
+
 		res.status(200);
 		if(Response.requestJson(req))
 		{
-            res.json(foundRace);
+            res.json(results);
 		} else {
-			res.render('singleRace', { response: foundRace});
+			res.render('singleRace', { response: results});
 		}
 	});
 }
@@ -97,7 +105,24 @@ function addRace(req, res, next)
                 return next();
             }
 
-            // todo: check if name already exists
+            // check if name already exists
+            _.each(races, function(race)
+            {
+                if(race.name == req.body.name)
+                {
+                    Response.setRaceAlreadyExists(req,res);
+                }
+                return true;
+            });
+
+            for(var i = 0; i < races.length; i++)
+            {
+                if(races[i].name == req.body.name)
+                {
+                    Response.setRaceAlreadyExists(req,res);
+                    return;
+                }
+            }
 
             if (races.length < 5) {
 
@@ -128,6 +153,7 @@ function addRace(req, res, next)
                 });
 
             } else {
+                console.log('demo');
                 Response.setTooManyRaces(req,res);
             }
 
@@ -142,6 +168,7 @@ function addRace(req, res, next)
 function deleteRace(req, res, next)
 {
     Race.remove({ name: req.params.name }, function(err, obj) {
+        //noinspection JSUnresolvedVariable
         if(obj.result.n === 0) {
             Response.setNotFound(req,res);
             return next();
@@ -232,7 +259,10 @@ function getVenues(req, res, next) {
         {
             res.json(doc.venues);
         } else {
-            res.render('arrayList', { arr: doc.venues}); // todo: custom layout
+            res.render('arrayList', { result: {
+                "title": "Venues In Race",
+                "content": doc.venues
+            }});
         }
     });
 }
@@ -254,8 +284,8 @@ function addVenue(req, res, next)
             }
 
             if (doc.venues.indexOf(venueId) > -1) {
-                return next();
-                // todo: error already in list
+                Response.setVenueAlreadyExists(req, res);
+                return;
             }
 
             Venue.findOne({id: venueId}, function (err, venue) {
@@ -282,7 +312,10 @@ function addVenue(req, res, next)
                         if (Response.requestJson(req)) {
                             res.json(doc.venues);
                         } else {
-                            res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                            res.render('arrayList', { result: {
+                                "title": "Venues In Race",
+                                "content": doc.venues
+                            }});
                         }
                     });
                 }
@@ -298,7 +331,10 @@ function addVenue(req, res, next)
                     if (Response.requestJson(req)) {
                         res.json(doc.venues);
                     } else {
-                        res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                        res.render('arrayList', { result: {
+                            "title": "Venues In Race",
+                            "content": doc.venues
+                        }});
                     }
                 }
             });
@@ -318,7 +354,7 @@ function removeVenue(req, res, next)
 
     Race.findOne({name: race}, function (err, doc) {
         if (doc == null) {
-            Response.setNotFound(req, res); // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -350,7 +386,7 @@ function getParticipants(req, res, next) {
     Race.findOne({name: name}, function(err, race) {
 
         if (race == null) {
-            Response.setNotFound(req, res); // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -367,12 +403,7 @@ function getParticipants(req, res, next) {
 
         User.find({'_id': { $in: userIds}}, function(err, users) {
 
-            if (race == null) {
-                Response.setNotFound(req, res); // todo: race not found
-                return next();
-            }
-
-            if (err) {
+            if (race == null || err) {
                 Response.setServerError(req, res);
                 return next();
             }
@@ -419,15 +450,13 @@ function removeParticipant(req, res, next) {
             }
         });
 
-        if(!participant) {
-            Response.setNotFound(req, res);
-            return next();
-        }
-        else {
+        if (participant) {
             participant.remove();
             race.save();
-
-            Response.showDeleteSuccess(req,res, participantId)
+            Response.showDeleteSuccess(req, res, participantId)
+        } else {
+            Response.setNotFound(req, res);
+            return next();
         }
     });
 }
@@ -452,15 +481,13 @@ function editParticipant(req, res, next) {
 
         if(race.status == "ended")
         {
-            // todo: correct error
-            Response.setNotFound(req,res);
+            Response.setCustom(req,res, 400, 'Race Already Ended');
             return next();
         }
 
         if(race.status == "not_started")
         {
-            // todo: correct error
-            Response.setNotFound(req,res);
+            Response.setCustom(req,res, 400, 'Race Not Started Yet');
             return next();
         }
 
@@ -479,8 +506,7 @@ function editParticipant(req, res, next) {
 
                 var venueIndex = race.venues.indexOf(venueId);
                 if (venueIndex == -1) {
-                    // todo: error venue not in Race
-                    Response.setNotFound(req, res);
+                    Response.setCustom(req,res, 400, 'Venue Not In Race');
                     return next();
                 }
 
@@ -494,9 +520,19 @@ function editParticipant(req, res, next) {
 
                 race.save();
 
-                // todo: correct response
+                var results =
+                {
+                    id: participant.id,
+                    winner: participant.winner,
+                    venues: participant.venues
+                };
+
                 res.status(200);
-                res.json(participant);
+                if(Response.requestJson(req)){
+                    res.json(results);
+                } else {
+                    res.render('raceParticipant', results);
+                }
             }
         } else {
             Response.setNotFound(req, res);
@@ -532,13 +568,24 @@ function getParticipant(req, res, next) {
             }
         });
 
-        if(!participant) {
+        if (participant) {
+
+            var results =
+            {
+                id: participant.id,
+                winner: participant.winner,
+                venues: participant.venues
+            };
+
+            res.status(200);
+            if(Response.requestJson(req)){
+                res.json(results);
+            } else {
+                res.render('raceParticipant', results);
+            }
+        } else {
             Response.setNotFound(req, res);
             return next();
-        }
-        else {
-            res.status(200);
-            res.json(participant); // todo: uniform result
         }
     });
 }
@@ -551,7 +598,7 @@ function addParticipant(req, res, next) {
     Race.findOne({name: raceName}, function(err, race) {
 
         if (race == null) {
-            Response.setNotFound(req, res);  // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -560,26 +607,58 @@ function addParticipant(req, res, next) {
             return next();
         }
 
-        if(_.contains(race.participants, newParticipantId)){
-            res.status(400);
-            res.json('User is already participating in this race.');
-            return next(err); // todo: uniform format
-        }
-
-        race.participants.push({
-            id: newParticipantId,
-            venues: []
-        });
-
-        race.save(function(error, savedRace) {
-            if (error) {
-                Response.setServerError(req, res);
-                return next();
-            } else {
-                res.status(200);
-                res.json(savedRace); // todo: show user
+        var participant;
+        _.each(race.participants, function(result)
+        {
+            if(result.id == newParticipantId)
+            {
+                participant = result;
             }
         });
+
+        if (participant) {
+            Response.setCustom(req,res, 400, 'User is already participating in this race.');
+            return next();
+        }
+
+        User.findOne({_id: newParticipantId}, function(err, user) {
+
+            if (err) {
+                Response.setServerError(req, res);
+                return next();
+            }
+
+            if (user == null) {
+                Response.setCustom(req,res, 400, 'User Not Found');
+                return next();
+            }
+            else {
+                var participant = {
+                    id: newParticipantId,
+                    winner: false,
+                    venues: []
+                };
+
+                race.participants.push(participant);
+
+                race.save(function (error) {
+                    if (error) {
+                        Response.setServerError(req, res);
+                        return next();
+                    } else {
+                        res.status(200);
+                        if (Response.requestJson(req)) {
+                            res.json(participant);
+                        } else {
+                            res.render('raceParticipant', participant);
+                        }
+                    }
+                });
+
+            }
+
+        });
+
     });
 }
 

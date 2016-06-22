@@ -48,12 +48,54 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
-    // venue not found
-    setNoVenueFound: function(req, res) {
+    setVenueAlreadyExists: function(req, res) {
+
+        var result = {
+            status  : 400,
+            message : 'Venue Already Exists'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    // successfully deleted
+    setCustom: function(req, res, code, error) {
+
+        var result = {
+            status  : code,
+            message : error
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    setRaceAlreadyExists: function(req, res) {
+
+        var result = {
+            status  : 400,
+            message : 'Name Already Taken'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    setRaceNotFound: function(req, res) {
 
         var result = {
             status  : 404,
-            message : 'Venue don\'t exists'
+            message : 'Race Not Found'
         };
 
         res.status(result.status);
