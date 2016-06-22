@@ -49,11 +49,40 @@ module.exports = {
     },
 
     // venue not found
+    setVenueAlreadyExists: function(req, res) {
+
+        var result = {
+            status  : 400,
+            message : 'Venue Already Exists'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    // venue not found
     setNoVenueFound: function(req, res) {
 
         var result = {
             status  : 404,
             message : 'Venue don\'t exists'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    setRaceAlreadyExists: function(req, res) {
+
+        var result = {
+            status  : 400,
+            message : 'Name Already Taken'
         };
 
         res.status(result.status);

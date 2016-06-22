@@ -97,7 +97,24 @@ function addRace(req, res, next)
                 return next();
             }
 
-            // todo: check if name already exists
+            // check if name already exists
+            _.each(races, function(race)
+            {
+                if(race.name == req.body.name)
+                {
+                    Response.setRaceAlreadyExists(req,res);
+                }
+                return true;
+            });
+
+            for(var i = 0; i < races.length; i++)
+            {
+                if(races[i].name == req.body.name)
+                {
+                    Response.setRaceAlreadyExists(req,res);
+                    return;
+                }
+            }
 
             if (races.length < 5) {
 
@@ -128,6 +145,7 @@ function addRace(req, res, next)
                 });
 
             } else {
+                console.log('demo');
                 Response.setTooManyRaces(req,res);
             }
 
@@ -142,6 +160,7 @@ function addRace(req, res, next)
 function deleteRace(req, res, next)
 {
     Race.remove({ name: req.params.name }, function(err, obj) {
+        //noinspection JSUnresolvedVariable
         if(obj.result.n === 0) {
             Response.setNotFound(req,res);
             return next();
@@ -254,8 +273,8 @@ function addVenue(req, res, next)
             }
 
             if (doc.venues.indexOf(venueId) > -1) {
+                Response.setVenueAlreadyExists();
                 return next();
-                // todo: error already in list
             }
 
             Venue.findOne({id: venueId}, function (err, venue) {
@@ -419,15 +438,13 @@ function removeParticipant(req, res, next) {
             }
         });
 
-        if(!participant) {
-            Response.setNotFound(req, res);
-            return next();
-        }
-        else {
+        if (participant) {
             participant.remove();
             race.save();
-
-            Response.showDeleteSuccess(req,res, participantId)
+            Response.showDeleteSuccess(req, res, participantId)
+        } else {
+            Response.setNotFound(req, res);
+            return next();
         }
     });
 }
@@ -532,13 +549,12 @@ function getParticipant(req, res, next) {
             }
         });
 
-        if(!participant) {
-            Response.setNotFound(req, res);
-            return next();
-        }
-        else {
+        if (participant) {
             res.status(200);
             res.json(participant); // todo: uniform result
+        } else {
+            Response.setNotFound(req, res);
+            return next();
         }
     });
 }
