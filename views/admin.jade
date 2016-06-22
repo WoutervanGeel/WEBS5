@@ -23,8 +23,6 @@ block content
 
           label Races
           div#editRaceList.list-group
-              each race, i in results.races
-                  a.list-group-item(href='#')= race.name
                   
           label Joined Participants
           div#raceParticipantList.list-group
@@ -40,30 +38,9 @@ block content
               button#leaveRaceButton.btn.btn-danger.btn-lg(type='submit') Leave
               hr
               Label assigned venues
-              div#editRaceVenueList.list-group
-                each race, i in results.races
-                  a.list-group-item(href='#')= race.name
-              .form-group
-                select#editRaceVenue.form-control
-                  option= null
-                  each venue, v in results.venues
-                    option= venue.name
+              input#editRaceVenueInput.form-control(type='text', name='newVenueId')
             button#editRaceAddVenueButton.btn.btn-warning.btn-lg(type='submit') Add this Venue
-            button#visitVenueButton.btn.btn-primary.btn-lg(type='submit') visit this venue
             hr
-        div.col-md-4
-          h1
-            span
-            |  My status
-          label#isWinner
-
-          h1
-            span
-            |  Visited venues
-
-          ul#visitedVenuesList.list-group
-              each race, i in results.races
-                  li.list-group-item(href='#')= race.name
         div.col-md-4
           h1
             span
@@ -89,8 +66,6 @@ block content
           input#venueFilter.form-control(type='text', name='venueFilter')
           button#searchVenueButton.btn.btn-warning.btn-lg(type='submit') Search
           div#editVenueList.list-group
-              each venue, i in results.venues
-                  a.list-group-item(href='#')= venue.name
           button#leftEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') previous page
           button#rightEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') next page
                   
