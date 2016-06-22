@@ -23,8 +23,6 @@ block content
 
           label Races
           div#editRaceList.list-group
-              each race, i in results.races
-                  a.list-group-item(href='#')= race.name
                   
           label Joined Participants
           div#raceParticipantList.list-group
@@ -34,15 +32,14 @@ block content
             .form-group
               label Name
               input#editRaceName.form-control(type='text', name='name')
-              .form-group
-                select#editRaceVenue.form-control
-                  option= null
-                  each venue, v in results.venues
-                    option= venue.name
-            button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
-            button#deleteRaceButton.btn.btn-danger.btn-lg(type='submit') Delete
-            button#joinRaceButton.btn.btn-primary.btn-lg(tpe='submit') Join
-            button#leaveRaceButton.btn.btn-danger.btn-lg(type='submit') Leave
+              button#editRaceButton.btn.btn-warning.btn-lg(type='submit') Edit
+              button#deleteRaceButton.btn.btn-danger.btn-lg(type='submit') Delete
+              button#joinRaceButton.btn.btn-primary.btn-lg(tpe='submit') Join
+              button#leaveRaceButton.btn.btn-danger.btn-lg(type='submit') Leave
+              hr
+              Label assigned venues
+              input#editRaceVenueInput.form-control(type='text', name='newVenueId')
+            button#editRaceAddVenueButton.btn.btn-warning.btn-lg(type='submit') Add this Venue
             hr
         div.col-md-4
           h1
@@ -66,9 +63,11 @@ block content
             span
             |  Edit Venue
 
+          input#venueFilter.form-control(type='text', name='venueFilter')
+          button#searchVenueButton.btn.btn-warning.btn-lg(type='submit') Search
           div#editVenueList.list-group
-              each venue, i in results.venues
-                  a.list-group-item(href='#')= venue.name
+          button#leftEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') previous page
+          button#rightEditVenueVenueButton.btn.btn-secondary.btn-lg(type='submit') next page
                   
           // Venues EDIT FORM
           form
