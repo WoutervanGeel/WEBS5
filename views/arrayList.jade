@@ -1,10 +1,8 @@
 extends layout
 
 block content
-    h1.
-        Race List
+    h1= result.title
     table.table.table-bordered
-        each race, index in arrList
+        each val in result.content
             tr
-                td
-                    a(href='/races/'+race.name)= race.name
+                td= val

@@ -251,7 +251,10 @@ function getVenues(req, res, next) {
         {
             res.json(doc.venues);
         } else {
-            res.render('arrayList', { arr: doc.venues}); // todo: custom layout
+            res.render('arrayList', { result: {
+                "title": "Venues In Race",
+                "content": doc.venues
+            }});
         }
     });
 }
@@ -273,8 +276,8 @@ function addVenue(req, res, next)
             }
 
             if (doc.venues.indexOf(venueId) > -1) {
-                Response.setVenueAlreadyExists();
-                return next();
+                Response.setVenueAlreadyExists(req, res);
+                return;
             }
 
             Venue.findOne({id: venueId}, function (err, venue) {
@@ -301,7 +304,10 @@ function addVenue(req, res, next)
                         if (Response.requestJson(req)) {
                             res.json(doc.venues);
                         } else {
-                            res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                            res.render('arrayList', { result: {
+                                "title": "Venues In Race",
+                                "content": doc.venues
+                            }});
                         }
                     });
                 }
@@ -317,7 +323,10 @@ function addVenue(req, res, next)
                     if (Response.requestJson(req)) {
                         res.json(doc.venues);
                     } else {
-                        res.render('arrayList', {arr: doc.venues}); // todo: custom layout
+                        res.render('arrayList', { result: {
+                            "title": "Venues In Race",
+                            "content": doc.venues
+                        }});
                     }
                 }
             });
@@ -337,7 +346,7 @@ function removeVenue(req, res, next)
 
     Race.findOne({name: race}, function (err, doc) {
         if (doc == null) {
-            Response.setNotFound(req, res); // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -369,7 +378,7 @@ function getParticipants(req, res, next) {
     Race.findOne({name: name}, function(err, race) {
 
         if (race == null) {
-            Response.setNotFound(req, res); // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -386,12 +395,7 @@ function getParticipants(req, res, next) {
 
         User.find({'_id': { $in: userIds}}, function(err, users) {
 
-            if (race == null) {
-                Response.setNotFound(req, res); // todo: race not found
-                return next();
-            }
-
-            if (err) {
+            if (race == null || err) {
                 Response.setServerError(req, res);
                 return next();
             }
@@ -469,15 +473,13 @@ function editParticipant(req, res, next) {
 
         if(race.status == "ended")
         {
-            // todo: correct error
-            Response.setNotFound(req,res);
+            Response.setCustom(req,res, 400, 'Race Already Ended');
             return next();
         }
 
         if(race.status == "not_started")
         {
-            // todo: correct error
-            Response.setNotFound(req,res);
+            Response.setCustom(req,res, 400, 'Race Not Started Yet');
             return next();
         }
 
@@ -496,8 +498,7 @@ function editParticipant(req, res, next) {
 
                 var venueIndex = race.venues.indexOf(venueId);
                 if (venueIndex == -1) {
-                    // todo: error venue not in Race
-                    Response.setNotFound(req, res);
+                    Response.setCustom(req,res, 400, 'Venue Not In Race');
                     return next();
                 }
 
@@ -511,9 +512,19 @@ function editParticipant(req, res, next) {
 
                 race.save();
 
-                // todo: correct response
+                var results =
+                {
+                    id: participant.id,
+                    winner: participant.winner,
+                    venues: participant.venues
+                };
+
                 res.status(200);
-                res.json(participant);
+                if(Response.requestJson(req)){
+                    res.json(results);
+                } else {
+                    res.render('raceParticipant', results);
+                }
             }
         } else {
             Response.setNotFound(req, res);
@@ -550,8 +561,20 @@ function getParticipant(req, res, next) {
         });
 
         if (participant) {
+
+            var results =
+            {
+                id: participant.id,
+                winner: participant.winner,
+                venues: participant.venues
+            };
+
             res.status(200);
-            res.json(participant); // todo: uniform result
+            if(Response.requestJson(req)){
+                res.json(results);
+            } else {
+                res.render('raceParticipant', results);
+            }
         } else {
             Response.setNotFound(req, res);
             return next();
@@ -567,7 +590,7 @@ function addParticipant(req, res, next) {
     Race.findOne({name: raceName}, function(err, race) {
 
         if (race == null) {
-            Response.setNotFound(req, res);  // todo: race not found
+            Response.setRaceNotFound(req, res);
             return next();
         }
 
@@ -577,23 +600,29 @@ function addParticipant(req, res, next) {
         }
 
         if(_.contains(race.participants, newParticipantId)){
-            res.status(400);
-            res.json('User is already participating in this race.');
-            return next(err); // todo: uniform format
+            Response.setCustom(req,res, 400, 'User is already participating in this race.');
+            return next();
         }
 
-        race.participants.push({
+        var participant = {
             id: newParticipantId,
+            winner: false,
             venues: []
-        });
+        };
 
-        race.save(function(error, savedRace) {
+        race.participants.push(participant);
+
+        race.save(function(error) {
             if (error) {
                 Response.setServerError(req, res);
                 return next();
             } else {
                 res.status(200);
-                res.json(savedRace); // todo: show user
+                if(Response.requestJson(req)){
+                    res.json(participant);
+                } else {
+                    res.render('raceParticipant', participant);
+                }
             }
         });
     });

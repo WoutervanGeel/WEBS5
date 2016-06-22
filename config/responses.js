@@ -48,7 +48,6 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
-    // venue not found
     setVenueAlreadyExists: function(req, res) {
 
         var result = {
@@ -63,12 +62,12 @@ module.exports = {
             res.render("notify", { message: result.message });
     },
 
-    // venue not found
-    setNoVenueFound: function(req, res) {
+    // successfully deleted
+    setCustom: function(req, res, code, error) {
 
         var result = {
-            status  : 404,
-            message : 'Venue don\'t exists'
+            status  : code,
+            message : error
         };
 
         res.status(result.status);
@@ -83,6 +82,20 @@ module.exports = {
         var result = {
             status  : 400,
             message : 'Name Already Taken'
+        };
+
+        res.status(result.status);
+        if (this.requestJson(req))
+            res.json(result);
+        else
+            res.render("notify", { message: result.message });
+    },
+
+    setRaceNotFound: function(req, res) {
+
+        var result = {
+            status  : 404,
+            message : 'Race Not Found'
         };
 
         res.status(result.status);

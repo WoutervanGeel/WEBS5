@@ -3,17 +3,18 @@ extends layout
 block content
     a(href='/races').
         go to races
-    h1.
-        #{response.name}
+    h1
+        Participant
     table.table.table-bordered
         tr
-            th= "Name"
-            td= response.name
+            th= "Id"
+            td= id
         tr
-            th= "Status"
-            td= response.status
+            th= "Winner"
+            td= winner
         tr
             th= "Venues"
             td
-                each venue in response.venues
+                each venue in venues
                     div= venue
+
